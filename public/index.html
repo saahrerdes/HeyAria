@@ -149,6 +149,8 @@ async function send(){
 const text=document.getElementById("text").value
 document.getElementById("text").value=""
 
+if(!text) return
+
 add(text,"user")
 
 const res=await fetch("/chat",{
@@ -166,6 +168,16 @@ const data=await res.json()
 
 if(data.limit){
 document.getElementById("limit").style.display="block"
+return
+}
+
+if(data.error){
+add("Erro: "+data.error,"bot")
+return
+}
+
+if(!data.reply){
+add("Erro: resposta vazia","bot")
 return
 }
 
@@ -201,7 +213,7 @@ audio.play()
 }
 
 /* =========================
-AUDIO SEM LIMITE
+AUDIO
 ========================= */
 
 let mediaRecorder
@@ -240,9 +252,10 @@ body:form
 
 const data=await res.json()
 
+if(data.text){
 document.getElementById("text").value=data.text
-
 send()
+}
 
 }
 
