@@ -13,9 +13,22 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
+/* =========================
+OPENAI
+========================= */
+
+if (!process.env.OPENAI_API_KEY) {
+console.error("ERRO: OPENAI_API_KEY não encontrada");
+process.exit(1);
+}
+
 const openai = new OpenAI({
 apiKey: process.env.OPENAI_API_KEY
 });
+
+/* =========================
+UPLOAD
+========================= */
 
 const upload = multer({ dest: "uploads/" });
 
@@ -80,6 +93,14 @@ Tradução:
 `
 
 /* =========================
+TESTE
+========================= */
+
+app.get("/", (req,res)=>{
+res.send("HeyAria online")
+})
+
+/* =========================
 LOGIN
 ========================= */
 
@@ -116,6 +137,8 @@ CHAT
 ========================= */
 
 app.post("/chat",async(req,res)=>{
+
+try{
 
 const {message,userId}=req.body
 
@@ -185,6 +208,11 @@ reply,
 remaining:10-user.messagesToday
 })
 
+}catch(err){
+console.error(err)
+res.status(500).json({error:"erro chat"})
+}
+
 })
 
 /* =========================
@@ -203,7 +231,9 @@ res.json({ok:true})
 
 app.post("/audio", upload.single("audio"), async (req, res) => {
 
-const audioFile = fs.readFileSync(req.file.path);
+try{
+
+const audioFile = fs.createReadStream(req.file.path);
 
 const response = await openai.audio.transcriptions.create({
 file: audioFile,
@@ -212,6 +242,11 @@ model: "gpt-4o-transcribe"
 
 res.json({ text: response.text });
 
+}catch(e){
+console.error(e)
+res.status(500).json({error:"erro audio"})
+}
+
 });
 
 /* =========================
@@ -219,6 +254,8 @@ VOZ IA
 ========================= */
 
 app.post("/speak", async (req, res) => {
+
+try{
 
 const { text } = req.body;
 
@@ -233,6 +270,11 @@ const buffer = Buffer.from(await mp3.arrayBuffer());
 res.setHeader("Content-Type", "audio/mpeg");
 res.send(buffer);
 
+}catch(e){
+console.error(e)
+res.status(500).json({error:"erro voz"})
+}
+
 });
 
 /* =========================
@@ -246,9 +288,11 @@ res.json({success:true})
 })
 
 /* =========================
-START
+START (RENDER)
 ========================= */
 
-app.listen(3000,()=>{
-console.log("HeyAria online")
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT,()=>{
+console.log("HeyAria online na porta " + PORT)
 })
