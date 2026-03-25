@@ -1,0 +1,299 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HeyAria</title>
+
+<style>
+body{
+font-family:Arial;
+margin:0;
+background:#ece5dd;
+}
+
+.chat{
+height:100vh;
+display:flex;
+flex-direction:column;
+}
+
+.messages{
+flex:1;
+overflow:auto;
+padding:10px;
+display:flex;
+flex-direction:column;
+}
+
+.msg{
+padding:10px;
+margin:5px;
+border-radius:10px;
+max-width:80%;
+}
+
+.user{
+background:#dcf8c6;
+align-self:flex-end;
+}
+
+.bot{
+background:white;
+align-self:flex-start;
+}
+
+.input{
+display:flex;
+padding:10px;
+background:white;
+}
+
+input{
+flex:1;
+padding:10px;
+border-radius:20px;
+border:1px solid #ccc;
+}
+
+button{
+margin-left:5px;
+padding:10px;
+border:none;
+background:#25d366;
+color:white;
+border-radius:20px;
+}
+
+.top{
+background:#075e54;
+color:white;
+padding:15px;
+}
+
+.limit{
+background:red;
+color:white;
+padding:10px;
+text-align:center;
+display:none;
+}
+
+.goal{
+padding:5px;
+border:none;
+margin-left:10px;
+border-radius:5px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="chat">
+
+<div class="top">
+HeyAria
+
+<select id="goal" class="goal">
+<option value="">Objetivo</option>
+<option>Conversação</option>
+<option>Viagem</option>
+<option>Trabalho</option>
+<option>Prova</option>
+<option>Fluência</option>
+</select>
+
+</div>
+
+<div class="limit" id="limit">
+Limite diário atingido
+<button onclick="upgrade()">Upgrade PRO</button>
+</div>
+
+<div class="messages" id="messages"></div>
+
+<div class="input">
+<input id="text"/>
+<button onclick="send()">Enviar</button>
+<button id="record">🎤</button>
+</div>
+
+<audio id="audio" style="display:none"></audio>
+
+</div>
+
+<script>
+
+let userId=localStorage.getItem("userId")
+
+if(!userId){
+userId=Math.random().toString(36)
+localStorage.setItem("userId",userId)
+}
+
+function add(text,type){
+const div=document.createElement("div")
+div.className="msg "+type
+div.innerText=text
+messages.appendChild(div)
+messages.scrollTop=messages.scrollHeight
+}
+
+/* =========================
+ENVIAR
+========================= */
+
+async function send(){
+
+const text=document.getElementById("text").value
+document.getElementById("text").value=""
+
+add(text,"user")
+
+const res=await fetch("/chat",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+message:text,
+userId
+})
+})
+
+const data=await res.json()
+
+if(data.limit){
+document.getElementById("limit").style.display="block"
+return
+}
+
+add(data.reply,"bot")
+
+speak(data.reply)
+
+}
+
+/* =========================
+VOZ
+========================= */
+
+async function speak(text){
+
+const res=await fetch("/speak",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({text})
+})
+
+const blob=await res.blob()
+
+const url=URL.createObjectURL(blob)
+
+const audio=document.getElementById("audio")
+
+audio.src=url
+audio.play()
+
+}
+
+/* =========================
+AUDIO SEM LIMITE
+========================= */
+
+let mediaRecorder
+let chunks=[]
+let recording=false
+
+document.getElementById("record").onclick=async()=>{
+
+if(!recording){
+
+const stream=await navigator.mediaDevices.getUserMedia({audio:true})
+
+mediaRecorder=new MediaRecorder(stream)
+
+mediaRecorder.start()
+recording=true
+
+document.getElementById("record").innerText="⏹️"
+
+mediaRecorder.ondataavailable=e=>{
+chunks.push(e.data)
+}
+
+mediaRecorder.onstop=async()=>{
+
+const blob=new Blob(chunks,{type:"audio/webm"})
+chunks=[]
+
+const form=new FormData()
+form.append("audio",blob)
+
+const res=await fetch("/audio",{
+method:"POST",
+body:form
+})
+
+const data=await res.json()
+
+document.getElementById("text").value=data.text
+
+send()
+
+}
+
+}else{
+
+mediaRecorder.stop()
+recording=false
+document.getElementById("record").innerText="🎤"
+
+}
+
+}
+
+/* =========================
+OBJETIVO
+========================= */
+
+document.getElementById("goal").onchange=function(){
+
+fetch("/goal",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+userId,
+goal:this.value
+})
+})
+
+}
+
+/* =========================
+UPGRADE
+========================= */
+
+async function upgrade(){
+
+await fetch("/upgrade",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({userId})
+})
+
+alert("Agora você é PRO")
+
+}
+
+</script>
+
+</body>
+</html>
