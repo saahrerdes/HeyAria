@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ária</title>
+<title>Aria</title>
 
 <style>
 
@@ -32,39 +32,46 @@ font-size:18px;
 padding:10px;
 display:flex;
 align-items:center;
-gap:8px;
+gap:10px;
 }
 
-/* ROBÔ FOFO */
+/* ROBÔ FOFO CHATBOT */
 
 .robot{
-width:30px;
-height:30px;
-background:#6366f1;
-border-radius:50%;
+width:32px;
+height:28px;
+background:linear-gradient(135deg,#6366f1,#8b5cf6);
+border-radius:12px;
 position:relative;
-display:flex;
-align-items:center;
-justify-content:center;
 }
 
+/* antena */
 .robot:before{
 content:"";
-width:6px;
-height:10px;
-background:#8b5cf6;
 position:absolute;
-top:-7px;
+width:6px;
+height:8px;
+background:#8b5cf6;
+top:-6px;
+left:50%;
+transform:translateX(-50%);
 border-radius:10px;
 }
 
+/* olhos grandes brilhantes */
 .robot:after{
 content:"";
-width:7px;
-height:7px;
+position:absolute;
+width:8px;
+height:8px;
 background:white;
 border-radius:50%;
-box-shadow:12px 0 0 white;
+left:7px;
+top:9px;
+box-shadow:
+12px 0 0 white,
+2px 2px 0 rgba(255,255,255,.6),
+14px 2px 0 rgba(255,255,255,.6);
 }
 
 .newchat{
@@ -122,33 +129,40 @@ background:white;
 }
 
 .avatar{
-width:42px;
-height:42px;
-background:#6366f1;
-border-radius:50%;
+width:44px;
+height:38px;
+background:linear-gradient(135deg,#6366f1,#8b5cf6);
+border-radius:14px;
 position:relative;
-display:flex;
-align-items:center;
-justify-content:center;
 }
 
+/* antena */
 .avatar:before{
 content:"";
-width:8px;
-height:12px;
-background:#8b5cf6;
 position:absolute;
+width:8px;
+height:10px;
+background:#8b5cf6;
 top:-7px;
+left:50%;
+transform:translateX(-50%);
 border-radius:10px;
 }
 
+/* olhos grandes brilhantes */
 .avatar:after{
 content:"";
-width:10px;
-height:10px;
+position:absolute;
+width:12px;
+height:12px;
 background:white;
 border-radius:50%;
-box-shadow:14px 0 0 white;
+left:9px;
+top:12px;
+box-shadow:
+14px 0 0 white,
+3px 3px 0 rgba(255,255,255,.6),
+17px 3px 0 rgba(255,255,255,.6);
 }
 
 .name{
