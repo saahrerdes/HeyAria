@@ -10,55 +10,93 @@ body{
 margin:0;
 font-family: system-ui, -apple-system, Arial;
 background:#f6f7fb;
-color:#111827;
 height:100vh;
+display:flex;
 }
 
+/* SIDEBAR */
+
+.sidebar{
+width:260px;
+background:white;
+border-right:1px solid #e5e7eb;
+display:flex;
+flex-direction:column;
+padding:14px;
+gap:10px;
+}
+
+.logo{
+font-weight:700;
+font-size:18px;
+padding:10px;
+}
+
+.newchat{
+background:#2563eb;
+color:white;
+border:none;
+padding:10px;
+border-radius:12px;
+cursor:pointer;
+}
+
+.search{
+padding:10px;
+border-radius:10px;
+border:1px solid #e5e7eb;
+}
+
+.menu{
+display:flex;
+flex-direction:column;
+gap:6px;
+margin-top:10px;
+}
+
+.item{
+padding:10px;
+border-radius:10px;
+cursor:pointer;
+}
+
+.item:hover{
+background:#f3f4f6;
+}
+
+/* CHAT */
+
 .chat{
+flex:1;
 display:flex;
 flex-direction:column;
 height:100vh;
-max-width:900px;
-margin:auto;
 background:white;
-box-shadow:0 0 40px rgba(0,0,0,0.08);
 }
 
 /* HEADER */
 
 .top{
-padding:16px;
-background:white;
+padding:14px;
+border-bottom:1px solid #eee;
 display:flex;
 align-items:center;
-gap:12px;
-border-bottom:1px solid #e5e7eb;
+gap:10px;
+background:white;
 }
 
 .avatar{
 width:42px;
 height:42px;
 border-radius:50%;
-overflow:hidden;
-box-shadow:0 4px 12px rgba(0,0,0,0.15);
-border:2px solid white;
-transition:.2s;
-}
-
-.avatar img{
-width:100%;
-height:100%;
-object-fit:cover;
-}
-
-/* avatar falando */
-.avatar.talking{
-transform:scale(1.08);
-box-shadow:0 0 0 4px rgba(37,99,235,0.15);
+background:#e0f2fe;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
 }
 
 .name{
-font-size:16px;
 font-weight:600;
 }
 
@@ -75,126 +113,75 @@ overflow:auto;
 padding:20px;
 display:flex;
 flex-direction:column;
-gap:12px;
+gap:10px;
 background:#f9fafb;
-scroll-behavior:smooth;
 }
 
 .msg{
 padding:12px 16px;
-border-radius:18px;
-max-width:75%;
+border-radius:16px;
+max-width:70%;
 white-space:pre-wrap;
-line-height:1.4;
 animation:fade .2s ease;
 }
 
 @keyframes fade{
-from{opacity:0; transform:translateY(5px)}
-to{opacity:1; transform:translateY(0)}
+from{opacity:0;transform:translateY(4px)}
+to{opacity:1}
 }
 
 .user{
 background:#2563eb;
 color:white;
 align-self:flex-end;
-border-bottom-right-radius:6px;
-box-shadow:0 4px 10px rgba(0,0,0,0.08);
 }
 
 .bot{
 background:white;
 border:1px solid #e5e7eb;
 align-self:flex-start;
-border-bottom-left-radius:6px;
-box-shadow:0 4px 10px rgba(0,0,0,0.05);
 }
 
 /* INPUT */
 
 .input{
 display:flex;
-padding:14px;
-gap:10px;
+padding:12px;
+gap:8px;
+border-top:1px solid #eee;
 background:white;
-border-top:1px solid #e5e7eb;
 }
 
 input{
 flex:1;
-padding:12px 16px;
-border-radius:25px;
+padding:12px;
+border-radius:20px;
 border:1px solid #e5e7eb;
-outline:none;
-background:#f9fafb;
-font-size:14px;
-}
-
-input:focus{
-border:1px solid #2563eb;
-background:white;
 }
 
 .send{
 background:#2563eb;
-border:none;
 color:white;
+border:none;
 padding:10px 16px;
-border-radius:50px;
-cursor:pointer;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
-}
-
-.send:hover{
-background:#1d4ed8;
+border-radius:20px;
 }
 
 .mic{
 background:#06b6d4;
+color:white;
 border:none;
-color:white;
-padding:10px 14px;
-border-radius:50%;
-cursor:pointer;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
-}
-
-/* LIMIT */
-
-.limit{
-background:#ef4444;
-color:white;
 padding:10px;
-text-align:center;
-display:none;
+border-radius:50%;
 }
 
 /* typing */
 
 .typing{
-font-size:13px;
+font-size:12px;
 color:#6b7280;
-margin:8px 20px;
-display:flex;
-align-items:center;
-gap:6px;
-}
-
-.dot{
-width:6px;
-height:6px;
-background:#6b7280;
-border-radius:50%;
-animation:blink 1.4s infinite;
-}
-
-.dot:nth-child(2){animation-delay:.2s}
-.dot:nth-child(3){animation-delay:.4s}
-
-@keyframes blink{
-0%{opacity:.2}
-20%{opacity:1}
-100%{opacity:.2}
+padding:0 20px;
+display:none;
 }
 
 </style>
@@ -203,30 +190,38 @@ animation:blink 1.4s infinite;
 
 <body>
 
+<div class="sidebar">
+
+<div class="logo">🤖 Aria</div>
+
+<button class="newchat">+ Novo chat</button>
+
+<input class="search" placeholder="Procurar chat...">
+
+<div class="menu">
+<div class="item">📚 Estudar para teste</div>
+<div class="item">💬 Conversação</div>
+<div class="item">🌎 Praticar idioma</div>
+<div class="item">✍️ Escrever texto</div>
+<div class="item">🧠 Explicações</div>
+</div>
+
+</div>
+
 <div class="chat">
 
 <div class="top">
-<div class="avatar" id="avatar">
-<img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=256&auto=format&fit=crop">
-</div>
+<div class="avatar">🤖</div>
 <div>
 <div class="name">Aria</div>
 <div class="sub">Assistente inteligente adaptável</div>
 </div>
 </div>
 
-<div class="limit" id="limit">
-Limite diário atingido
-<button onclick="upgrade()">Upgrade PRO</button>
-</div>
-
 <div class="messages" id="messages"></div>
 
-<div class="typing" id="typing" style="display:none">
-Aria está digitando
-<div class="dot"></div>
-<div class="dot"></div>
-<div class="dot"></div>
+<div class="typing" id="typing">
+Aria está digitando...
 </div>
 
 <div class="input">
@@ -256,10 +251,6 @@ messages.appendChild(div)
 messages.scrollTop=messages.scrollHeight
 }
 
-/* =========================
-SEND
-========================= */
-
 async function send(){
 
 const text=document.getElementById("text").value
@@ -269,7 +260,7 @@ if(!text) return
 
 add(text,"user")
 
-typing.style.display="flex"
+typing.style.display="block"
 
 const res=await fetch("/chat",{
 method:"POST",
@@ -286,27 +277,11 @@ const data=await res.json()
 
 typing.style.display="none"
 
-if(data.limit){
-document.getElementById("limit").style.display="block"
-return
-}
-
-/* avatar falando */
-document.getElementById("avatar").classList.add("talking")
-
 add(data.reply,"bot")
 
 speak(data.reply)
 
-setTimeout(()=>{
-document.getElementById("avatar").classList.remove("talking")
-},1200)
-
 }
-
-/* =========================
-VOICE
-========================= */
 
 async function speak(text){
 
@@ -327,9 +302,7 @@ audio.play()
 
 }
 
-/* =========================
-AUDIO
-========================= */
+/* AUDIO */
 
 let mediaRecorder
 let chunks=[]
@@ -360,7 +333,7 @@ chunks=[]
 const form=new FormData()
 form.append("audio",blob)
 
-typing.style.display="flex"
+typing.style.display="block"
 
 const res=await fetch("/audio",{
 method:"POST",
@@ -375,16 +348,8 @@ if(data.text){
 add(data.text,"user")
 
 if(data.reply){
-
-document.getElementById("avatar").classList.add("talking")
-
 add(data.reply,"bot")
 speak(data.reply)
-
-setTimeout(()=>{
-document.getElementById("avatar").classList.remove("talking")
-},1200)
-
 }
 }
 
@@ -397,24 +362,6 @@ recording=false
 record.innerText="🎤"
 
 }
-
-}
-
-/* =========================
-UPGRADE
-========================= */
-
-async function upgrade(){
-
-await fetch("/upgrade",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({userId})
-})
-
-alert("Agora você é PRO")
 
 }
 
