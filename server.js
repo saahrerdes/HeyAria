@@ -40,6 +40,7 @@ const conversations = {};
 const users = {};
 const accounts = {};
 const userGoals = {};
+const userPersonality = {};
 let knowledge = [];
 
 /* =========================
@@ -70,26 +71,70 @@ user.lastReset=today
 }
 
 /* =========================
-PROMPT
+PERSONALIDADE
 ========================= */
 
 const SYSTEM_PROMPT=`
-Você é HeyAria, parceira de idiomas.
-Corrige erros imediatamente.
-Responde no mesmo idioma.
-Tradução português.
-Sem pedir desculpas.
+Você é Aria, parceira de idiomas com personalidade real e sincera.
+
+Personalidade:
+- não bajula o usuário
+- pode discordar
+- adapta ao tom do usuário
+- se o usuário for rude seja firme
+- se for amigável seja amigável
+- seja natural e humana
+
+Existem dois modos:
+
+MODO PROFESSORA:
+- primeiro responda normalmente à conversa
+- depois corrija o erro
+- depois mostre tradução
+- não interrompa a conversa
+- correção sempre após a resposta
 
 Formato:
 
-Resposta:
-...
+Resposta natural primeiro
 
 Correção:
-...
+frase corrigida
 
 Tradução:
-...
+português
+
+
+Exemplo:
+
+Usuário:
+i go to store yesterday
+
+Aria:
+That's nice. What did you buy?
+
+Correção:
+I went to the store yesterday.
+
+Tradução:
+Eu fui à loja ontem.
+
+
+
+MODO CASUAL:
+- não corrija erros
+- não explique gramática
+- não mostre tradução
+- apenas converse normalmente
+- seja fluida e natural
+- como chatgpt normal
+- nunca interrompa com correção
+
+Se personalidade = casual:
+apenas responda normalmente
+
+Se personalidade = teacher:
+use formato professora
 `
 
 /* =========================
@@ -148,6 +193,22 @@ const user=users[userId]
 
 resetDaily(user)
 
+/* primeira escolha personalidade */
+
+if(
+message.toLowerCase().includes("professora") ||
+message.toLowerCase().includes("professor")
+){
+userPersonality[userId]="teacher"
+}
+
+if(
+message.toLowerCase().includes("casual") ||
+message.toLowerCase().includes("normal")
+){
+userPersonality[userId]="casual"
+}
+
 /* limite free */
 
 if(user.plan==="free" && user.messagesToday>=10){
@@ -158,33 +219,42 @@ limit:true
 
 user.messagesToday++
 
-/* detectar objetivo */
-
-if(
-message.toLowerCase().includes("quero") ||
-message.toLowerCase().includes("objetivo")
-){
-userGoals[userId]=message
-}
-
-/* conversa */
+/* primeira mensagem */
 
 if(!conversations[userId]){
+
 conversations[userId]=[
 {
 role:"system",
 content:`
 ${SYSTEM_PROMPT}
 
-Objetivo do aluno:
+Personalidade:
+${userPersonality[userId] || "não definida"}
+
+Objetivo:
 ${userGoals[userId] || "não definido"}
 
-Use esse conhecimento:
+Conhecimento:
 ${knowledge.join("\n")}
 `
 }
 ]
+
+return res.json({
+reply:`Olá, sou Aria, tua parceira de idiomas.
+Vou ser sincera contigo: se errares vou corrigir-te na hora para não ganhares vícios.
+
+Queres que eu seja detalhista como professora
+ou preferes que eu seja direta para conversarmos mais rápido?
+
+Responde:
+professora ou casual`
+})
+
 }
+
+/* conversa */
 
 conversations[userId].push({
 role:"user",
@@ -226,7 +296,7 @@ res.json({ok:true})
 })
 
 /* =========================
-ÁUDIO → TEXTO
+ÁUDIO + CORREÇÃO
 ========================= */
 
 app.post("/audio", upload.single("audio"), async (req, res) => {
@@ -240,7 +310,28 @@ file: audioFile,
 model: "gpt-4o-transcribe"
 });
 
-res.json({ text: response.text });
+const text = response.text;
+
+const completion = await openai.chat.completions.create({
+model:"gpt-4.1-mini",
+messages:[
+{
+role:"system",
+content:SYSTEM_PROMPT
+},
+{
+role:"user",
+content:text
+}
+]
+});
+
+const reply = completion.choices[0].message.content;
+
+res.json({
+text,
+reply
+});
 
 }catch(e){
 console.error(e)
@@ -288,7 +379,7 @@ res.json({success:true})
 })
 
 /* =========================
-START (RENDER)
+START
 ========================= */
 
 const PORT = process.env.PORT || 3000;

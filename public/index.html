@@ -2,88 +2,143 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>HeyAria</title>
+<title>Aria</title>
 
 <style>
+
 body{
-font-family:Arial;
 margin:0;
-background:#ece5dd;
+font-family: system-ui, -apple-system, Arial;
+background: linear-gradient(180deg,#0f172a,#020617);
+color:white;
+height:100vh;
 }
 
 .chat{
-height:100vh;
 display:flex;
 flex-direction:column;
+height:100vh;
 }
+
+/* HEADER */
+
+.top{
+padding:15px;
+background:rgba(0,0,0,0.3);
+backdrop-filter: blur(10px);
+display:flex;
+align-items:center;
+gap:10px;
+border-bottom:1px solid rgba(255,255,255,0.05);
+}
+
+.avatar{
+width:40px;
+height:40px;
+border-radius:50%;
+background:linear-gradient(135deg,#7c3aed,#06b6d4);
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:bold;
+}
+
+.name{
+font-size:16px;
+font-weight:600;
+}
+
+.sub{
+font-size:12px;
+opacity:.6;
+}
+
+/* MESSAGES */
 
 .messages{
 flex:1;
 overflow:auto;
-padding:10px;
+padding:15px;
 display:flex;
 flex-direction:column;
+gap:10px;
 }
 
 .msg{
-padding:10px;
-margin:5px;
-border-radius:10px;
+padding:12px;
+border-radius:14px;
 max-width:80%;
+white-space:pre-wrap;
+line-height:1.4;
 }
 
 .user{
-background:#dcf8c6;
+background:#22c55e;
+color:black;
 align-self:flex-end;
+border-bottom-right-radius:4px;
 }
 
 .bot{
-background:white;
+background:#111827;
+border:1px solid rgba(255,255,255,0.05);
 align-self:flex-start;
+border-bottom-left-radius:4px;
 }
+
+/* INPUT */
 
 .input{
 display:flex;
-padding:10px;
-background:white;
+padding:12px;
+gap:8px;
+background:rgba(0,0,0,0.4);
+backdrop-filter: blur(10px);
 }
 
 input{
 flex:1;
-padding:10px;
+padding:12px;
 border-radius:20px;
-border:1px solid #ccc;
-}
-
-button{
-margin-left:5px;
-padding:10px;
 border:none;
-background:#25d366;
+outline:none;
+background:#020617;
 color:white;
+}
+
+.send{
+background:#7c3aed;
+border:none;
+color:white;
+padding:10px 14px;
 border-radius:20px;
 }
 
-.top{
-background:#075e54;
+.mic{
+background:#06b6d4;
+border:none;
 color:white;
-padding:15px;
+padding:10px 14px;
+border-radius:50%;
 }
+
+/* LIMIT */
 
 .limit{
-background:red;
-color:white;
+background:#ef4444;
 padding:10px;
 text-align:center;
 display:none;
 }
 
-.goal{
-padding:5px;
-border:none;
-margin-left:10px;
-border-radius:5px;
+/* typing */
+
+.typing{
+opacity:.5;
+font-size:13px;
+margin:5px;
 }
+
 </style>
 
 </head>
@@ -93,17 +148,11 @@ border-radius:5px;
 <div class="chat">
 
 <div class="top">
-HeyAria
-
-<select id="goal" class="goal">
-<option value="">Objetivo</option>
-<option>Conversação</option>
-<option>Viagem</option>
-<option>Trabalho</option>
-<option>Prova</option>
-<option>Fluência</option>
-</select>
-
+<div class="avatar">A</div>
+<div>
+<div class="name">Aria</div>
+<div class="sub">Parceira de idiomas</div>
+</div>
 </div>
 
 <div class="limit" id="limit">
@@ -113,10 +162,14 @@ Limite diário atingido
 
 <div class="messages" id="messages"></div>
 
+<div class="typing" id="typing" style="display:none">
+Aria está digitando...
+</div>
+
 <div class="input">
-<input id="text"/>
-<button onclick="send()">Enviar</button>
-<button id="record">🎤</button>
+<input id="text" placeholder="Fale com a Aria..."/>
+<button class="send" onclick="send()">➤</button>
+<button class="mic" id="record">🎤</button>
 </div>
 
 <audio id="audio" style="display:none"></audio>
@@ -141,7 +194,7 @@ messages.scrollTop=messages.scrollHeight
 }
 
 /* =========================
-ENVIAR
+SEND
 ========================= */
 
 async function send(){
@@ -152,6 +205,8 @@ document.getElementById("text").value=""
 if(!text) return
 
 add(text,"user")
+
+typing.style.display="block"
 
 const res=await fetch("/chat",{
 method:"POST",
@@ -166,18 +221,10 @@ userId
 
 const data=await res.json()
 
+typing.style.display="none"
+
 if(data.limit){
 document.getElementById("limit").style.display="block"
-return
-}
-
-if(data.error){
-add("Erro: "+data.error,"bot")
-return
-}
-
-if(!data.reply){
-add("Erro: resposta vazia","bot")
 return
 }
 
@@ -188,7 +235,7 @@ speak(data.reply)
 }
 
 /* =========================
-VOZ
+VOICE
 ========================= */
 
 async function speak(text){
@@ -205,8 +252,6 @@ const blob=await res.blob()
 
 const url=URL.createObjectURL(blob)
 
-const audio=document.getElementById("audio")
-
 audio.src=url
 audio.play()
 
@@ -220,7 +265,7 @@ let mediaRecorder
 let chunks=[]
 let recording=false
 
-document.getElementById("record").onclick=async()=>{
+record.onclick=async()=>{
 
 if(!recording){
 
@@ -231,7 +276,7 @@ mediaRecorder=new MediaRecorder(stream)
 mediaRecorder.start()
 recording=true
 
-document.getElementById("record").innerText="⏹️"
+record.innerText="⏹️"
 
 mediaRecorder.ondataavailable=e=>{
 chunks.push(e.data)
@@ -245,6 +290,8 @@ chunks=[]
 const form=new FormData()
 form.append("audio",blob)
 
+typing.style.display="block"
+
 const res=await fetch("/audio",{
 method:"POST",
 body:form
@@ -252,9 +299,15 @@ body:form
 
 const data=await res.json()
 
+typing.style.display="none"
+
 if(data.text){
-document.getElementById("text").value=data.text
-send()
+add(data.text,"user")
+
+if(data.reply){
+add(data.reply,"bot")
+speak(data.reply)
+}
 }
 
 }
@@ -263,28 +316,9 @@ send()
 
 mediaRecorder.stop()
 recording=false
-document.getElementById("record").innerText="🎤"
+record.innerText="🎤"
 
 }
-
-}
-
-/* =========================
-OBJETIVO
-========================= */
-
-document.getElementById("goal").onchange=function(){
-
-fetch("/goal",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-userId,
-goal:this.value
-})
-})
 
 }
 
