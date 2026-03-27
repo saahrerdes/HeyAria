@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Aria</title>
+<title>Ária</title>
 
 <style>
 
@@ -30,6 +30,41 @@ gap:10px;
 font-weight:700;
 font-size:18px;
 padding:10px;
+display:flex;
+align-items:center;
+gap:8px;
+}
+
+/* ROBÔ FOFO */
+
+.robot{
+width:30px;
+height:30px;
+background:#6366f1;
+border-radius:50%;
+position:relative;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.robot:before{
+content:"";
+width:6px;
+height:10px;
+background:#8b5cf6;
+position:absolute;
+top:-7px;
+border-radius:10px;
+}
+
+.robot:after{
+content:"";
+width:7px;
+height:7px;
+background:white;
+border-radius:50%;
+box-shadow:12px 0 0 white;
 }
 
 .newchat{
@@ -39,12 +74,6 @@ border:none;
 padding:10px;
 border-radius:12px;
 cursor:pointer;
-}
-
-.search{
-padding:10px;
-border-radius:10px;
-border:1px solid #e5e7eb;
 }
 
 .menu{
@@ -62,6 +91,13 @@ cursor:pointer;
 
 .item:hover{
 background:#f3f4f6;
+}
+
+.search{
+padding:10px;
+border-radius:10px;
+border:1px solid #e5e7eb;
+margin-top:auto;
 }
 
 /* CHAT */
@@ -88,12 +124,31 @@ background:white;
 .avatar{
 width:42px;
 height:42px;
+background:#6366f1;
 border-radius:50%;
-background:#e0f2fe;
+position:relative;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:22px;
+}
+
+.avatar:before{
+content:"";
+width:8px;
+height:12px;
+background:#8b5cf6;
+position:absolute;
+top:-7px;
+border-radius:10px;
+}
+
+.avatar:after{
+content:"";
+width:10px;
+height:10px;
+background:white;
+border-radius:50%;
+box-shadow:14px 0 0 white;
 }
 
 .name{
@@ -192,11 +247,12 @@ display:none;
 
 <div class="sidebar">
 
-<div class="logo">🤖 Aria</div>
+<div class="logo">
+<div class="robot"></div>
+Aria
+</div>
 
 <button class="newchat">+ Novo chat</button>
-
-<input class="search" placeholder="Procurar chat...">
 
 <div class="menu">
 <div class="item">📚 Estudar para teste</div>
@@ -206,12 +262,14 @@ display:none;
 <div class="item">🧠 Explicações</div>
 </div>
 
+<input class="search" placeholder="Procurar chat...">
+
 </div>
 
 <div class="chat">
 
 <div class="top">
-<div class="avatar">🤖</div>
+<div class="avatar"></div>
 <div>
 <div class="name">Aria</div>
 <div class="sub">Assistente inteligente adaptável</div>
