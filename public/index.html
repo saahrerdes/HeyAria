@@ -35,43 +35,41 @@ align-items:center;
 gap:10px;
 }
 
-/* ROBÔ FOFO */
+/* ARIA ROBOT */
 
 .robot{
 width:34px;
 height:28px;
-background:linear-gradient(135deg,#7c83ff,#8b5cf6);
+background:linear-gradient(180deg,#ede9fe,#c7d2fe);
 border-radius:14px;
 position:relative;
+box-shadow:0 2px 6px rgba(0,0,0,.08) inset;
 }
 
-/* ANTENAS */
+/* antenas curvas */
 .robot:before{
 content:"";
 position:absolute;
-width:4px;
-height:10px;
-background:#8b5cf6;
-left:8px;
-top:-8px;
-border-radius:4px;
-box-shadow:14px 0 0 #8b5cf6;
+width:18px;
+height:14px;
+border-top:2px solid #93c5fd;
+border-radius:50%;
+left:2px;
+top:-10px;
+box-shadow:
+16px 0 0 -0px transparent;
 }
 
-/* OLHOS ESTRELA */
 .robot:after{
 content:"";
 position:absolute;
-width:9px;
-height:9px;
-background:white;
+width:6px;
+height:6px;
+background:#93c5fd;
 border-radius:50%;
-left:7px;
-top:9px;
-box-shadow:
-13px 0 0 white,
-2px 2px 0 1px #fff,
-15px 2px 0 1px #fff;
+left:1px;
+top:-4px;
+box-shadow:22px 0 0 #93c5fd;
 }
 
 /* CHAT */
@@ -96,40 +94,391 @@ background:white;
 /* AVATAR */
 
 .avatar{
-width:46px;
-height:38px;
-background:linear-gradient(135deg,#7c83ff,#8b5cf6);
-border-radius:16px;
+width:48px;
+height:40px;
+background:linear-gradient(180deg,#ede9fe,#c7d2fe);
+border-radius:18px;
 position:relative;
+box-shadow:0 4px 10px rgba(0,0,0,.08);
 }
 
-/* ANTENAS */
+/* antenas */
 .avatar:before{
 content:"";
 position:absolute;
-width:5px;
-height:12px;
-background:#8b5cf6;
-left:10px;
-top:-9px;
-border-radius:6px;
-box-shadow:18px 0 0 #8b5cf6;
+width:28px;
+height:18px;
+border-top:3px solid #93c5fd;
+border-radius:50%;
+left:5px;
+top:-12px;
 }
 
-/* OLHOS BRILHANTES */
 .avatar:after{
 content:"";
 position:absolute;
-width:13px;
-height:13px;
+width:8px;
+height:8px;
+background:#93c5fd;
+border-radius:50%;
+left:4px;
+top:-3px;
+box-shadow:30px 0 0 #93c5fd;
+}
+
+/* olhos */
+
+.avatar::marker{}
+
+.avatar{
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.avatar span{
+display:none;
+}
+
+/* olhos desenhados */
+
+.avatar:focus{}
+
+.avatar{
+}
+
+.avatar::selection{}
+
+.avatar:empty::before{}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{
+content:"";
+position:absolute;
+width:14px;
+height:14px;
 background:white;
 border-radius:50%;
-left:9px;
-top:12px;
+left:10px;
+top:14px;
 box-shadow:
-15px 0 0 white,
+16px 0 0 white,
 3px 3px 0 2px rgba(255,255,255,.9),
-18px 3px 0 2px rgba(255,255,255,.9);
+19px 3px 0 2px rgba(255,255,255,.9);
+}
+
+/* sorriso */
+
+.avatar .mouth{
+display:none;
+}
+
+.avatar{
+}
+
+.avatar:before{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar:after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar:after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.avatar{
+}
+
+.avatar::after{}
+
+.name{
+font-weight:600;
+}
+
+.sub{
+font-size:12px;
+color:#6b7280;
 }
 
 .newchat{
@@ -165,15 +514,6 @@ border:1px solid #e5e7eb;
 margin-top:auto;
 }
 
-.name{
-font-weight:600;
-}
-
-.sub{
-font-size:12px;
-color:#6b7280;
-}
-
 .messages{
 flex:1;
 overflow:auto;
@@ -189,12 +529,6 @@ padding:12px 16px;
 border-radius:16px;
 max-width:70%;
 white-space:pre-wrap;
-animation:fade .2s ease;
-}
-
-@keyframes fade{
-from{opacity:0;transform:translateY(4px)}
-to{opacity:1}
 }
 
 .user{
@@ -265,8 +599,7 @@ Aria
 <div class="item">📚 Estudar para teste</div>
 <div class="item">💬 Conversação</div>
 <div class="item">🌎 Praticar idioma</div>
-<div class="item">✍️ Escrever texto</div>
-<div class="item">🧠 Corrigir pronúncia</div>
+<div class="item">🎤 Corrigir pronúncia</div>
 </div>
 
 <input class="search" placeholder="Procurar chat...">
@@ -279,7 +612,7 @@ Aria
 <div class="avatar"></div>
 <div>
 <div class="name">Aria</div>
-<div class="sub">Assistente de voz e pronúncia inteligente</div>
+<div class="sub">Assistente de voz e pronúncia</div>
 </div>
 </div>
 
@@ -290,7 +623,7 @@ Aria está ouvindo...
 </div>
 
 <div class="input">
-<input id="text" placeholder="Fale ou escreva com a Aria..."/>
+<input id="text" placeholder="Fale com a Aria..."/>
 <button class="send" onclick="send()">Enviar</button>
 <button class="mic" id="record">🎤</button>
 </div>
@@ -300,9 +633,6 @@ Aria está ouvindo...
 </div>
 
 <script>
-
-/* tudo igual */
-
 let userId=localStorage.getItem("userId")
 
 if(!userId){
@@ -319,54 +649,34 @@ messages.scrollTop=messages.scrollHeight
 }
 
 async function send(){
-
 const text=document.getElementById("text").value
 document.getElementById("text").value=""
-
 if(!text) return
-
 add(text,"user")
-
 typing.style.display="block"
 
 const res=await fetch("/chat",{
 method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-message:text,
-userId
-})
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({ message:text, userId })
 })
 
 const data=await res.json()
-
 typing.style.display="none"
-
 add(data.reply,"bot")
-
 speak(data.reply)
-
 }
 
 async function speak(text){
-
 const res=await fetch("/speak",{
 method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
+headers:{ "Content-Type":"application/json" },
 body:JSON.stringify({text})
 })
-
 const blob=await res.blob()
-
 const url=URL.createObjectURL(blob)
-
 audio.src=url
 audio.play()
-
 }
 
 let mediaRecorder
@@ -374,24 +684,16 @@ let chunks=[]
 let recording=false
 
 record.onclick=async()=>{
-
 if(!recording){
-
 const stream=await navigator.mediaDevices.getUserMedia({audio:true})
-
 mediaRecorder=new MediaRecorder(stream)
-
 mediaRecorder.start()
 recording=true
-
 record.innerText="⏹️"
 
-mediaRecorder.ondataavailable=e=>{
-chunks.push(e.data)
-}
+mediaRecorder.ondataavailable=e=>chunks.push(e.data)
 
 mediaRecorder.onstop=async()=>{
-
 const blob=new Blob(chunks,{type:"audio/webm"})
 chunks=[]
 
@@ -400,36 +702,26 @@ form.append("audio",blob)
 
 typing.style.display="block"
 
-const res=await fetch("/audio",{
-method:"POST",
-body:form
-})
-
+const res=await fetch("/audio",{ method:"POST", body:form })
 const data=await res.json()
 
 typing.style.display="none"
 
 if(data.text){
 add(data.text,"user")
-
 if(data.reply){
 add(data.reply,"bot")
 speak(data.reply)
 }
 }
-
 }
 
 }else{
-
 mediaRecorder.stop()
 recording=false
 record.innerText="🎤"
-
 }
-
 }
-
 </script>
 
 </body>
