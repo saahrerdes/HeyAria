@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Aria</title>
+<title>Ária</title>
 
 <style>
 
@@ -35,41 +35,11 @@ align-items:center;
 gap:10px;
 }
 
-/* ARIA ROBOT */
-
-.robot{
+.logo-avatar{
 width:34px;
-height:28px;
-background:linear-gradient(180deg,#ede9fe,#c7d2fe);
-border-radius:14px;
-position:relative;
-box-shadow:0 2px 6px rgba(0,0,0,.08) inset;
-}
-
-/* antenas curvas */
-.robot:before{
-content:"";
-position:absolute;
-width:18px;
-height:14px;
-border-top:2px solid #93c5fd;
-border-radius:50%;
-left:2px;
-top:-10px;
-box-shadow:
-16px 0 0 -0px transparent;
-}
-
-.robot:after{
-content:"";
-position:absolute;
-width:6px;
-height:6px;
-background:#93c5fd;
-border-radius:50%;
-left:1px;
-top:-4px;
-box-shadow:22px 0 0 #93c5fd;
+height:34px;
+border-radius:8px;
+object-fit:cover;
 }
 
 /* CHAT */
@@ -90,8 +60,6 @@ align-items:center;
 gap:10px;
 background:white;
 }
-
-/* AVATAR AGORA USA SVG */
 
 .avatar{
 width:48px;
@@ -217,8 +185,8 @@ display:none;
 <div class="sidebar">
 
 <div class="logo">
-<div class="robot"></div>
-Aria
+<img src="Aria.svg" class="logo-avatar">
+Ária
 </div>
 
 <button class="newchat">+ Novo chat</button>
@@ -239,7 +207,7 @@ Aria
 <div class="top">
 <img src="Aria.svg" class="avatar">
 <div>
-<div class="name">Aria</div>
+<div class="name">Ária</div>
 <div class="sub">Assistente de voz e pronúncia</div>
 </div>
 </div>
@@ -247,11 +215,11 @@ Aria
 <div class="messages" id="messages"></div>
 
 <div class="typing" id="typing">
-Aria está ouvindo...
+Ária está ouvindo...
 </div>
 
 <div class="input">
-<input id="text" placeholder="Fale com a Aria..."/>
+<input id="text" placeholder="Fale com a Ária..."/>
 <button class="send" onclick="send()">Enviar</button>
 <button class="mic" id="record">🎤</button>
 </div>
