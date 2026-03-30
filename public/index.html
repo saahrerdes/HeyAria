@@ -93,7 +93,10 @@ let learningLang=localStorage.getItem("learningLang")||"en";
 localStorage.setItem("learningLang",learningLang);
 
 function highlight(text){
-  return text.replace(/\*\*(.*?)\*\*/g,'<span class="error">$1</span>');
+  if(!text) return "";
+  return text
+    .replace(/\*\*(.*?)\*\*/g,'<span class="error">$1</span>')
+    .replace(/\n/g,"<br>");
 }
 
 function saveErrors(text){
@@ -172,6 +175,20 @@ async function speak(text){
   audio.onended=()=>avatar.classList.remove("speaking");
 }
 
+async function upgradePro(){
+  const res = await fetch("/create-checkout-session",{
+    method:"POST"
+  });
+
+  const data = await res.json();
+
+  if(data.url){
+    window.location.href = data.url;
+  }else{
+    alert("Erro ao abrir pagamento");
+  }
+}
+
 let mediaRecorder, chunks=[], recording=false;
 
 record.onclick=async()=>{
@@ -195,7 +212,7 @@ record.onclick=async()=>{
       addAudio(url,"user");
 
       const form=new FormData();
-      form.append("audio",blob);
+      form.append("audio", blob, "audio.webm");
       form.append("userId",userId);
       form.append("nativeLang",nativeLang);
       form.append("learningLang",learningLang);
@@ -205,10 +222,12 @@ record.onclick=async()=>{
       const res=await fetch("/audio",{ method:"POST", body:form });
       const data=await res.json();
 
-      typing.style.display="none";
-      add(data.reply,"bot");
+     typing.style.display="none";
 
-      speak(data.reply);
+if(data.reply){
+  add(data.reply,"bot");
+  speak(data.reply);
+}
     }
   }
 }
