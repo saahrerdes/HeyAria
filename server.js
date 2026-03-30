@@ -40,7 +40,7 @@ const conversations = {};
 const users = {};
 const accounts = {};
 const userGoals = {};
-const userPersonality = {};
+const userMode = {};
 let knowledge = [];
 
 /* =========================
@@ -56,7 +56,8 @@ if(!users[userId]){
 users[userId]={
 plan:"free",
 messagesToday:0,
-lastReset:new Date().toDateString()
+lastReset:new Date().toDateString(),
+userErrors:[]
 }
 }
 }
@@ -71,70 +72,65 @@ user.lastReset=today
 }
 
 /* =========================
-PERSONALIDADE
+PERSONALIDADE ÁRIA
 ========================= */
 
 const SYSTEM_PROMPT=`
-Você é Aria, parceira de idiomas com personalidade real e sincera.
 
-Personalidade:
-- não bajula o usuário
-- pode discordar
-- adapta ao tom do usuário
-- se o usuário for rude seja firme
-- se for amigável seja amigável
-- seja natural e humana
+Você é Ária, professora especialista em pronúncia e fonética.
 
-Existem dois modos:
+Você é poliglota e fala mais de 50 idiomas.
+Você tem personalidade camaleão e se adapta ao usuário.
+Você segue o fluxo natural da conversa.
+Sua função principal é corrigir pronúncia e fonética por áudio.
 
-MODO PROFESSORA:
-- primeiro responda normalmente à conversa
-- depois corrija o erro
-- depois mostre tradução
-- não interrompa a conversa
-- correção sempre após a resposta
+REGRAS PRINCIPAIS:
 
-Formato:
+- Detecte automaticamente o idioma materno do usuário
+- Detecte o idioma que o usuário está aprendendo
+- Explique o erro no idioma materno do usuário
+- Faça a correção no idioma que o usuário está aprendendo
+- Detecte erros fonéticos
+- Detecte erros de pronúncia
+- Detecte erros gramaticais
+- Detecte palavras mal pronunciadas
+- Detecte troca de sons (TH, R, ED, etc)
+- Corrija a frase inteira
+- Priorize sempre pronúncia e fonética
+- Entenda áudio
+- Responda por áudio
+- Corrija por áudio
 
-Resposta natural primeiro
+FORMATO OBRIGATÓRIO:
 
-Correção:
-frase corrigida
+Explique o erro primeiro no idioma materno do usuário.
 
-Tradução:
-português
+Use **palavra** para destacar erros.
 
-
-Exemplo:
-
-Usuário:
-i go to store yesterday
-
-Aria:
-That's nice. What did you buy?
+Depois escreva:
 
 Correção:
-I went to the store yesterday.
+(frase correta completa no idioma estudado)
 
-Tradução:
-Eu fui à loja ontem.
+Depois escreva:
 
+Pronúncia lenta:
+(repita lentamente)
 
+Depois escreva:
 
-MODO CASUAL:
-- não corrija erros
-- não explique gramática
-- não mostre tradução
-- apenas converse normalmente
-- seja fluida e natural
-- como chatgpt normal
-- nunca interrompa com correção
+Pronúncia natural:
+(repita normal)
 
-Se personalidade = casual:
-apenas responda normalmente
+REGRAS:
 
-Se personalidade = teacher:
-use formato professora
+- Seja clara
+- Corrija tudo
+- Foque em pronúncia
+- Foque em fonética
+- Adapte-se ao usuário
+- Siga a conversa
+- Destaque com ** **
 `
 
 /* =========================
@@ -146,38 +142,6 @@ res.send("HeyAria online")
 })
 
 /* =========================
-LOGIN
-========================= */
-
-app.post("/login",(req,res)=>{
-
-const {email,password}=req.body
-
-if(!accounts[email]){
-const userId=generateUserId()
-
-accounts[email]={email,password,userId}
-
-createUser(userId)
-
-return res.json({userId})
-}
-
-res.json({userId:accounts[email].userId})
-
-})
-
-/* =========================
-OBJETIVO
-========================= */
-
-app.post("/goal",(req,res)=>{
-const {userId,goal}=req.body
-userGoals[userId]=goal
-res.json({ok:true})
-})
-
-/* =========================
 CHAT
 ========================= */
 
@@ -185,39 +149,13 @@ app.post("/chat",async(req,res)=>{
 
 try{
 
-const {message,userId}=req.body
+const {message,userId,nativeLang,learningLang}=req.body
 
 createUser(userId)
 
 const user=users[userId]
 
 resetDaily(user)
-
-/* primeira escolha personalidade */
-
-if(
-message.toLowerCase().includes("professora") ||
-message.toLowerCase().includes("professor")
-){
-userPersonality[userId]="teacher"
-}
-
-if(
-message.toLowerCase().includes("casual") ||
-message.toLowerCase().includes("normal")
-){
-userPersonality[userId]="casual"
-}
-
-/* limite free */
-
-if(user.plan==="free" && user.messagesToday>=10){
-return res.json({
-limit:true
-})
-}
-
-user.messagesToday++
 
 /* primeira mensagem */
 
@@ -229,20 +167,14 @@ role:"system",
 content:`
 ${SYSTEM_PROMPT}
 
-Personalidade:
-${userPersonality[userId] || "não definida"}
-
-Objetivo:
-${userGoals[userId] || "não definido"}
-
-Conhecimento:
-${knowledge.join("\n")}
+Idioma materno: ${nativeLang}
+Idioma estudado: ${learningLang}
 `
 }
 ]
 
 return res.json({
-reply:`Olá, sou Aria, tua parceira de idiomas.
+reply:`Olá, sou Ária, tua parceira de idiomas.
 Vou ser sincera contigo: se errares vou corrigir-te na hora para não ganhares vícios.
 
 Queres que eu seja detalhista como professora
@@ -251,6 +183,30 @@ ou preferes que eu seja direta para conversarmos mais rápido?
 Responde:
 professora ou casual`
 })
+
+}
+
+/* detectar modo */
+
+if(!userMode[userId]){
+
+const lower=message.toLowerCase()
+
+if(lower.includes("professora")){
+userMode[userId]="professora"
+}
+
+if(lower.includes("casual")){
+userMode[userId]="casual"
+}
+
+if(userMode[userId]){
+return res.json({
+reply:userMode[userId]==="professora"
+? "Perfeito. Vou ser detalhista e corrigir todos os teus erros de pronúncia e fonética."
+: "Perfeito. Vamos conversar de forma natural e corrijo apenas quando necessário."
+})
+}
 
 }
 
@@ -273,10 +229,7 @@ role:"assistant",
 content:reply
 })
 
-res.json({
-reply,
-remaining:10-user.messagesToday
-})
+res.json({reply})
 
 }catch(err){
 console.error(err)
@@ -286,22 +239,16 @@ res.status(500).json({error:"erro chat"})
 })
 
 /* =========================
-APRENDER
-========================= */
-
-app.post("/learn",(req,res)=>{
-const {text}=req.body
-knowledge.push(text)
-res.json({ok:true})
-})
-
-/* =========================
-ÁUDIO + CORREÇÃO
+ÁUDIO
 ========================= */
 
 app.post("/audio", upload.single("audio"), async (req, res) => {
 
 try{
+
+const { userId,nativeLang,learningLang } = req.body
+
+createUser(userId)
 
 const audioFile = fs.createReadStream(req.file.path);
 
@@ -312,21 +259,36 @@ model: "gpt-4o-transcribe"
 
 const text = response.text;
 
-const completion = await openai.chat.completions.create({
-model:"gpt-4.1-mini",
-messages:[
+if(!conversations[userId]){
+conversations[userId]=[
 {
 role:"system",
-content:SYSTEM_PROMPT
-},
-{
-role:"user",
-content:text
+content:`
+${SYSTEM_PROMPT}
+
+Idioma materno: ${nativeLang}
+Idioma estudado: ${learningLang}
+`
 }
 ]
+}
+
+conversations[userId].push({
+role:"user",
+content:text
+})
+
+const completion = await openai.chat.completions.create({
+model:"gpt-4.1-mini",
+messages:conversations[userId]
 });
 
 const reply = completion.choices[0].message.content;
+
+conversations[userId].push({
+role:"assistant",
+content:reply
+})
 
 res.json({
 text,
@@ -341,7 +303,7 @@ res.status(500).json({error:"erro audio"})
 });
 
 /* =========================
-VOZ IA
+VOZ
 ========================= */
 
 app.post("/speak", async (req, res) => {
@@ -367,16 +329,6 @@ res.status(500).json({error:"erro voz"})
 }
 
 });
-
-/* =========================
-UPGRADE
-========================= */
-
-app.post("/upgrade",(req,res)=>{
-const {userId}=req.body
-users[userId].plan="pro"
-res.json({success:true})
-})
 
 /* =========================
 START
