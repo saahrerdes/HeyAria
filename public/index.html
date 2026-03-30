@@ -3,383 +3,207 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Ária</title>
-
 <style>
-
-body{
-margin:0;
-font-family: system-ui, -apple-system, Arial;
-background:#f6f7fb;
-height:100vh;
-display:flex;
-}
-
-/* SIDEBAR */
-
-.sidebar{
-width:260px;
-background:white;
-border-right:1px solid #e5e7eb;
-display:flex;
-flex-direction:column;
-padding:14px;
-gap:10px;
-}
-
-.logo{
-font-weight:700;
-font-size:18px;
-padding:10px;
-display:flex;
-align-items:center;
-gap:10px;
-}
-
-.logo-avatar{
-width:34px;
-height:34px;
-border-radius:8px;
-object-fit:cover;
-}
-
-/* CHAT */
-
-.chat{
-flex:1;
-display:flex;
-flex-direction:column;
-height:100vh;
-background:white;
-}
-
-.top{
-padding:14px;
-border-bottom:1px solid #eee;
-display:flex;
-align-items:center;
-gap:10px;
-background:white;
-}
-
-.avatar{
-width:48px;
-height:48px;
-border-radius:50%;
-object-fit:cover;
-transition:0.3s;
-}
-
-.avatar.speaking{
-box-shadow:
-0 0 0 4px rgba(37,99,235,0.2),
-0 0 20px rgba(37,99,235,0.6),
-0 0 40px rgba(37,99,235,0.4);
-transform:scale(1.05);
-}
-
-.name{
-font-weight:600;
-}
-
-.sub{
-font-size:12px;
-color:#6b7280;
-}
-
-.messages{
-flex:1;
-overflow:auto;
-padding:20px;
-display:flex;
-flex-direction:column;
-gap:10px;
-background:#f9fafb;
-}
-
-.msg{
-padding:12px 16px;
-border-radius:16px;
-max-width:70%;
-white-space:pre-wrap;
-}
-
-.user{
-background:#2563eb;
-color:white;
-align-self:flex-end;
-}
-
-.bot{
-background:white;
-border:1px solid #e5e7eb;
-align-self:flex-start;
-}
-
-.input{
-display:flex;
-padding:12px;
-gap:8px;
-border-top:1px solid #eee;
-background:white;
-}
-
-input{
-flex:1;
-padding:12px;
-border-radius:20px;
-border:1px solid #e5e7eb;
-}
-
-.send{
-background:#2563eb;
-color:white;
-border:none;
-padding:10px 16px;
-border-radius:20px;
-}
-
-.mic{
-background:#06b6d4;
-color:white;
-border:none;
-padding:10px;
-border-radius:50%;
-}
-
-.typing{
-font-size:12px;
-color:#6b7280;
-padding:0 20px;
-display:none;
-}
-
-.error{
-background:#fee2e2;
-color:#b91c1c;
-padding:2px 4px;
-border-radius:4px;
-font-weight:600;
-}
-
-audio{
-width:220px;
-margin-top:6px;
-}
-
+body{margin:0;font-family:system-ui,-apple-system,Arial;background:#f6f7fb;height:100vh;display:flex;}
+.sidebar{width:260px;background:white;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;padding:14px;gap:10px;}
+.logo{font-weight:700;font-size:18px;padding:10px;display:flex;align-items:center;gap:10px;}
+.logo-avatar{width:34px;height:34px;border-radius:8px;object-fit:cover;}
+.side-btn{padding:10px;border:none;background:#2563eb;color:white;border-radius:8px;cursor:pointer;}
+.search{padding:8px;border-radius:8px;border:1px solid #e5e7eb;}
+.side-section{font-size:12px;color:#6b7280;margin-top:8px;}
+.error-item{background:#fee2e2;color:#991b1b;padding:4px;border-radius:6px;margin-top:4px;font-size:12px;}
+.chat{flex:1;display:flex;flex-direction:column;height:100vh;background:white;}
+.top{padding:14px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;background:white;}
+.avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;transition:0.3s;}
+.avatar.speaking{box-shadow:0 0 0 4px rgba(37,99,235,0.2),0 0 20px rgba(37,99,235,0.6),0 0 40px rgba(37,99,235,0.4);transform:scale(1.05);}
+.name{font-weight:600;}
+.sub{font-size:12px;color:#6b7280;}
+.messages{flex:1;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:10px;background:#f9fafb;}
+.msg{padding:12px 16px;border-radius:16px;max-width:70%;white-space:pre-wrap;}
+.user{background:#2563eb;color:white;align-self:flex-end;}
+.bot{background:white;border:1px solid #e5e7eb;align-self:flex-start;}
+.input{display:flex;padding:12px;gap:8px;border-top:1px solid #eee;background:white;}
+input{flex:1;padding:12px;border-radius:20px;border:1px solid #e5e7eb;}
+.send{background:#2563eb;color:white;border:none;padding:10px 16px;border-radius:20px;}
+.mic{background:#06b6d4;color:white;border:none;padding:10px;border-radius:50%;}
+.typing{font-size:12px;color:#6b7280;padding:0 20px;display:none;}
+.error{background:#fee2e2;color:#b91c1c;padding:2px 4px;border-radius:4px;font-weight:600;}
+audio{width:220px;margin-top:6px;}
 </style>
 </head>
-
 <body>
 
 <div class="sidebar">
-<div class="logo">
-<img src="/images/aria.png" class="logo-avatar">
-Ária
-</div>
+  <div class="logo"><img src="/images/aria.png" class="logo-avatar">Ária</div>
+  <button class="side-btn" onclick="newChat()">+ Novo chat</button>
+  <input class="search" placeholder="Procurar conversa..." oninput="searchChat(this.value)">
+  
+  <div class="side-section">
+    Modo:
+    <select id="mode" onchange="setMode()">
+      <option value="professora">Professora</option>
+      <option value="casual">Casual</option>
+    </select>
+  </div>
+
+  <div class="side-section">
+    <button class="side-btn" onclick="upgradePro()">🌟 Tornar-se Pro</button>
+  </div>
+
+  <div class="side-section" id="planInfo"></div>
+
+  <div class="side-section">
+    Dicionário de erros:<div id="errors"></div>
+  </div>
+
+  <div class="side-section">
+    Desempenho do aluno:<div id="performance"></div>
+  </div>
 </div>
 
 <div class="chat">
+  <div class="top">
+    <img src="/images/aria.png" class="avatar" id="avatar">
+    <div>
+      <div class="name">Ária</div>
+      <div class="sub">Assistente poliglota de pronúncia</div>
+    </div>
+  </div>
 
-<div class="top">
-<img src="/images/aria.png" class="avatar" id="avatar">
-<div>
-<div class="name">Ária</div>
-<div class="sub">Assistente de voz e pronúncia</div>
-</div>
-</div>
+  <div class="messages" id="messages"></div>
+  <div class="typing" id="typing">Ária está ouvindo...</div>
 
-<div class="messages" id="messages"></div>
+  <div class="input">
+    <input id="text" placeholder="Fale com a Ária..."/>
+    <button class="send" onclick="send()">Enviar</button>
+    <button class="mic" id="record">🎤</button>
+  </div>
 
-<div class="typing" id="typing">
-Ária está ouvindo...
-</div>
-
-<div class="input">
-<input id="text" placeholder="Fale com a Ária..."/>
-<button class="send" onclick="send()">Enviar</button>
-<button class="mic" id="record">🎤</button>
-</div>
-
-<audio id="audio" style="display:none"></audio>
-
+  <audio id="audio" style="display:none"></audio>
 </div>
 
 <script>
+let userId=localStorage.getItem("userId")||Math.random().toString(36);
+localStorage.setItem("userId",userId);
 
-let userId=localStorage.getItem("userId")
+let nativeLang=localStorage.getItem("nativeLang")||navigator.language||"en";
+localStorage.setItem("nativeLang",nativeLang);
 
-if(!userId){
-userId=Math.random().toString(36)
-localStorage.setItem("userId",userId)
+let learningLang=localStorage.getItem("learningLang")||"en";
+localStorage.setItem("learningLang",learningLang);
+
+let users = {};
+
+function highlight(text){return text.replace(/\*\*(.*?)\*\*/g,'<span class="error">$1</span>');}
+
+function saveErrors(text){
+  const matches=[...text.matchAll(/\*\*(.*?)\*\*/g)];
+  matches.forEach(m=>{
+    const div=document.createElement("div");
+    div.className="error-item";
+    div.innerText=m[1];
+    errors.appendChild(div);
+  });
 }
 
-/* idioma materno */
-
-let nativeLang=localStorage.getItem("nativeLang")
-
-if(!nativeLang){
-nativeLang=navigator.language || "en"
-localStorage.setItem("nativeLang",nativeLang)
+function updatePlanInfo(performance){
+  planInfo.innerText = users[userId]?.plan==="free"
+    ? `Plano Free: ${users[userId].messagesToday || 0}/50 mensagens hoje.`
+    : "Plano Pro: mensagens ilimitadas.";
+  performanceDiv.innerText = performance
+    ? `Nível: ${performance.nivel}, Acertos: ${performance.acertos}, Erros: ${performance.erros}`
+    : "";
 }
 
-/* idioma que está aprendendo */
-
-let learningLang=localStorage.getItem("learningLang")
-
-if(!learningLang){
-learningLang="en"
-localStorage.setItem("learningLang",learningLang)
-}
-
-function highlight(text){
-return text.replace(/\*\*(.*?)\*\*/g,'<span class="error">$1</span>')
-}
-
-function add(text,type){
-const div=document.createElement("div")
-div.className="msg "+type
-div.innerHTML=highlight(text)
-messages.appendChild(div)
-messages.scrollTop=messages.scrollHeight
+function add(text,type,performance=null){
+  const div=document.createElement("div");
+  div.className="msg "+type;
+  div.innerHTML=highlight(text);
+  messages.appendChild(div);
+  if(type==="bot") saveErrors(text);
+  messages.scrollTop=messages.scrollHeight;
+  if(performance) updatePlanInfo(performance);
 }
 
 function addAudio(url,type){
-const div=document.createElement("div")
-div.className="msg "+type
+  const div=document.createElement("div");
+  div.className="msg "+type;
+  const audio=document.createElement("audio");
+  audio.controls=true;
+  audio.src=url;
+  div.appendChild(audio);
+  messages.appendChild(div);
+  messages.scrollTop=messages.scrollHeight;
+}
 
-const audio=document.createElement("audio")
-audio.controls=true
-audio.src=url
+async function upgradePro(){
+  const res = await fetch("/create-checkout-session",{ method:"POST"});
+  const data = await res.json();
+  if(data.url) window.location.href = data.url;
+}
 
-div.appendChild(audio)
-messages.appendChild(div)
+function newChat(){messages.innerHTML=""; errors.innerHTML="";}
 
-messages.scrollTop=messages.scrollHeight
+function searchChat(value){
+  document.querySelectorAll(".msg").forEach(m=>{ m.style.display = m.innerText.toLowerCase().includes(value.toLowerCase())? "block":"none"; });
+}
+
+function setMode(){
+  const mode=document.getElementById("mode").value;
+  fetch("/chat",{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ message:mode, userId, nativeLang, learningLang }) });
 }
 
 async function send(){
+  const text=document.getElementById("text").value; document.getElementById("text").value="";
+  if(!text) return;
+  add(text,"user");
+  typing.style.display="block";
 
-const text=document.getElementById("text").value
-document.getElementById("text").value=""
-
-if(!text) return
-
-add(text,"user")
-
-typing.style.display="block"
-
-const res=await fetch("/chat",{
-method:"POST",
-headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ 
-message:text,
-userId,
-nativeLang,
-learningLang
-})
-})
-
-const data=await res.json()
-
-typing.style.display="none"
-
-add(data.reply,"bot")
-
-speak(data.reply)
-
+  const res=await fetch("/chat",{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ message:text, userId, nativeLang, learningLang, objective:"TOEFL" }) });
+  const data=await res.json();
+  typing.style.display="none";
+  add(data.reply,"bot",data.performance);
+  speak(data.reply);
 }
 
 async function speak(text){
-
-avatar.classList.add("speaking")
-
-const res=await fetch("/speak",{
-method:"POST",
-headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({text})
-})
-
-const blob=await res.blob()
-
-const url=URL.createObjectURL(blob)
-
-audio.src=url
-audio.play()
-
-addAudio(url,"bot")
-
-audio.onended=()=>{
-avatar.classList.remove("speaking")
+  avatar.classList.add("speaking");
+  const res=await fetch("/speak",{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({text}) });
+  const blob=await res.blob();
+  const url=URL.createObjectURL(blob);
+  audio.src=url;
+  audio.play();
+  addAudio(url,"bot");
+  audio.onended=()=>{ avatar.classList.remove("speaking"); }
 }
 
-}
-
-let mediaRecorder
-let chunks=[]
-let recording=false
-
+let mediaRecorder, chunks=[], recording=false;
 record.onclick=async()=>{
-
-if(!recording){
-
-const stream=await navigator.mediaDevices.getUserMedia({audio:true})
-
-mediaRecorder=new MediaRecorder(stream)
-
-mediaRecorder.start()
-
-recording=true
-record.innerText="⏹️"
-
-chunks=[]
-
-mediaRecorder.ondataavailable=e=>chunks.push(e.data)
-
-}else{
-
-mediaRecorder.stop()
-
-recording=false
-record.innerText="🎤"
-
-mediaRecorder.onstop=async()=>{
-
-const blob=new Blob(chunks,{type:"audio/webm"})
-
-const url=URL.createObjectURL(blob)
-
-addAudio(url,"user")
-
-const form=new FormData()
-form.append("audio",blob)
-form.append("userId",userId)
-form.append("nativeLang",nativeLang)
-form.append("learningLang",learningLang)
-
-typing.style.display="block"
-
-const res=await fetch("/audio",{
-method:"POST",
-body:form
-})
-
-const data=await res.json()
-
-typing.style.display="none"
-
-if(data.reply){
-
-add(data.reply,"bot")
-speak(data.reply)
-
+  if(!recording){
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaRecorder=new MediaRecorder(stream);
+    mediaRecorder.start(); recording=true; record.innerText="⏹️"; chunks=[];
+    mediaRecorder.ondataavailable=e=>chunks.push(e.data);
+  }else{
+    mediaRecorder.stop(); recording=false; record.innerText="🎤";
+    mediaRecorder.onstop=async()=>{
+      const blob=new Blob(chunks,{type:"audio/webm"});
+      const url=URL.createObjectURL(blob);
+      addAudio(url,"user");
+      const form=new FormData();
+      form.append("audio",blob);
+      form.append("userId",userId);
+      form.append("nativeLang",nativeLang);
+      form.append("learningLang",learningLang);
+      typing.style.display="block";
+      const res=await fetch("/audio",{ method:"POST", body:form });
+      const data=await res.json();
+      typing.style.display="none";
+      add(data.reply,"bot",data.performance);
+      speak(data.reply);
+    }
+  }
 }
-
-}
-
-}
-
-}
-
 </script>
 
 </body>
