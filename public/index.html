@@ -86,15 +86,15 @@ audio{width:220px;margin-top:6px;}
 let userId=localStorage.getItem("userId")||Math.random().toString(36);
 localStorage.setItem("userId",userId);
 
-let nativeLang=localStorage.getItem("nativeLang")||navigator.language||"en";
+let nativeLang=localStorage.getItem("nativeLang")||navigator.language||"pt-BR";
 localStorage.setItem("nativeLang",nativeLang);
 
 let learningLang=localStorage.getItem("learningLang")||"en";
 localStorage.setItem("learningLang",learningLang);
 
-let users = {};
-
-function highlight(text){return text.replace(/\*\*(.*?)\*\*/g,'<span class="error">$1</span>');}
+function highlight(text){
+  return text.replace(/\*\*(.*?)\*\*/g,'<span class="error">$1</span>');
+}
 
 function saveErrors(text){
   const matches=[...text.matchAll(/\*\*(.*?)\*\*/g)];
@@ -106,23 +106,13 @@ function saveErrors(text){
   });
 }
 
-function updatePlanInfo(performance){
-  planInfo.innerText = users[userId]?.plan==="free"
-    ? `Plano Free: ${users[userId].messagesToday || 0}/50 mensagens hoje.`
-    : "Plano Pro: mensagens ilimitadas.";
-  performanceDiv.innerText = performance
-    ? `Nível: ${performance.nivel}, Acertos: ${performance.acertos}, Erros: ${performance.erros}`
-    : "";
-}
-
-function add(text,type,performance=null){
+function add(text,type){
   const div=document.createElement("div");
   div.className="msg "+type;
   div.innerHTML=highlight(text);
   messages.appendChild(div);
   if(type==="bot") saveErrors(text);
   messages.scrollTop=messages.scrollHeight;
-  if(performance) updatePlanInfo(performance);
 }
 
 function addAudio(url,type){
@@ -136,70 +126,88 @@ function addAudio(url,type){
   messages.scrollTop=messages.scrollHeight;
 }
 
-async function upgradePro(){
-  const res = await fetch("/create-checkout-session",{ method:"POST"});
-  const data = await res.json();
-  if(data.url) window.location.href = data.url;
-}
-
-function newChat(){messages.innerHTML=""; errors.innerHTML="";}
-
-function searchChat(value){
-  document.querySelectorAll(".msg").forEach(m=>{ m.style.display = m.innerText.toLowerCase().includes(value.toLowerCase())? "block":"none"; });
-}
-
-function setMode(){
-  const mode=document.getElementById("mode").value;
-  fetch("/chat",{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ message:mode, userId, nativeLang, learningLang }) });
-}
-
 async function send(){
-  const text=document.getElementById("text").value; document.getElementById("text").value="";
+  const text=document.getElementById("text").value;
+  document.getElementById("text").value="";
   if(!text) return;
+
   add(text,"user");
   typing.style.display="block";
 
-  const res=await fetch("/chat",{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ message:text, userId, nativeLang, learningLang, objective:"TOEFL" }) });
+  const res=await fetch("/chat",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({
+      message:text,
+      userId,
+      nativeLang,
+      learningLang
+    })
+  });
+
   const data=await res.json();
   typing.style.display="none";
-  add(data.reply,"bot",data.performance);
+  add(data.reply,"bot");
+
   speak(data.reply);
 }
 
 async function speak(text){
   avatar.classList.add("speaking");
-  const res=await fetch("/speak",{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({text}) });
+
+  const res=await fetch("/speak",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({text})
+  });
+
   const blob=await res.blob();
   const url=URL.createObjectURL(blob);
+
+  addAudio(url,"bot");
+
   audio.src=url;
   audio.play();
-  addAudio(url,"bot");
-  audio.onended=()=>{ avatar.classList.remove("speaking"); }
+
+  audio.onended=()=>avatar.classList.remove("speaking");
 }
 
 let mediaRecorder, chunks=[], recording=false;
+
 record.onclick=async()=>{
   if(!recording){
     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
     mediaRecorder=new MediaRecorder(stream);
-    mediaRecorder.start(); recording=true; record.innerText="⏹️"; chunks=[];
+    mediaRecorder.start();
+    recording=true;
+    record.innerText="⏹️";
+    chunks=[];
     mediaRecorder.ondataavailable=e=>chunks.push(e.data);
   }else{
-    mediaRecorder.stop(); recording=false; record.innerText="🎤";
+    mediaRecorder.stop();
+    recording=false;
+    record.innerText="🎤";
+
     mediaRecorder.onstop=async()=>{
       const blob=new Blob(chunks,{type:"audio/webm"});
       const url=URL.createObjectURL(blob);
+
       addAudio(url,"user");
+
       const form=new FormData();
       form.append("audio",blob);
       form.append("userId",userId);
       form.append("nativeLang",nativeLang);
       form.append("learningLang",learningLang);
+
       typing.style.display="block";
+
       const res=await fetch("/audio",{ method:"POST", body:form });
       const data=await res.json();
+
       typing.style.display="none";
-      add(data.reply,"bot",data.performance);
+      add(data.reply,"bot");
+
       speak(data.reply);
     }
   }

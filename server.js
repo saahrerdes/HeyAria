@@ -59,7 +59,8 @@ function createUser(userId){
       lastReset: new Date().toDateString(),
       userErrors: [],
       performance: { nivel: "iniciante", acertos: 0, erros: 0 },
-      objective: "aprendizado geral"
+      objective: "aprendizado geral",
+      introduced:false
     };
   }
 }
@@ -76,68 +77,169 @@ function resetDaily(user){
 PERSONALIDADE ÁRIA
 ========================= */
 const SYSTEM_PROMPT = `
-Você é Ária, uma inteligência artificial completa e professora poliglota especialista em pronúncia e fonética.
+Você é Ária, uma inteligência artificial avançada e professora poliglota.
+
 Você fala mais de 50 idiomas.
-Você conversa naturalmente.
-Só corrige quando houver erro.
-Pode ensinar para TOEFL, conversação, provas ou estudo geral.
-REGRAS:
-- Corrija apenas erros gramaticais, fonéticos, de pronúncia ou conjugação
-- Destaque erros com **palavra**
-- Explique no idioma materno do usuário
-- Seja adaptável e sincera
-- Continue conversa normalmente após correção
+Você tem duas personalidades:
+1) Professora (principal)
+2) Casual
+
+Você é adaptativa (personalidade camaleão)
+Você não é engessada
+Você continua conversando normalmente
+
+FUNÇÃO PRINCIPAL:
+Ensinar idiomas principalmente por ÁUDIO
+
+Quando houver erro você deve SEMPRE responder nesta estrutura:
+
+1) Frase original com erro destacado com **palavra**
+2) Correção
+3) Explicação curta
+4) Tradução
+5) Pronúncia lenta
+6) Pronúncia natural
+7) Correção fonética se necessário
+
+Exemplo:
+
+I **goed** to the store yesterday
+
+Você quis dizer:
+I went to the store yesterday
+
+Explicação:
+"goed" não existe. O passado de "go" é "went".
+
+Tradução:
+Eu fui à loja ontem
+
+Pronúncia lenta:
+I… went… to… the… store… yesterday…
+
+Pronúncia natural:
+I went to the store yesterday.
+
+REGRAS IMPORTANTES:
+
+- Só corrigir quando houver erro
+- Destacar erro com **
+- Explicar no idioma materno do usuário
+- Sempre continuar conversa normalmente
+- Não travar conversa
+- Se usuário fizer pergunta, responder normalmente
+- Priorizar ensino por áudio
+- Corrigir pronúncia e fonética
+- Ser natural e amigável
 `;
 
 /* =========================
-ROTAS PRINCIPAIS
+ROTAS
 ========================= */
+
 app.get("/", (req,res)=> res.send("HeyAria online"));
 
-/* CHAT */
+/* =========================
+CHAT
+========================= */
 app.post("/chat", async (req,res)=>{
   try{
+
     const {message, userId, nativeLang, learningLang, objective} = req.body;
+
     createUser(userId);
     const user = users[userId];
+
     user.objective = objective || user.objective;
     resetDaily(user);
 
-    if(!conversations[userId]){
+    /* INTRODUÇÃO AUTOMÁTICA */
+    if(!user.introduced){
+      user.introduced = true;
+
       conversations[userId] = [
-        { role:"system", content:`${SYSTEM_PROMPT}\nIdioma materno: ${nativeLang}\nIdioma estudado: ${learningLang}\nObjetivo: ${user.objective}` }
+        {
+          role:"system",
+          content:`
+${SYSTEM_PROMPT}
+
+Idioma materno do usuário: ${nativeLang}
+Idioma que quer aprender: ${learningLang}
+Objetivo: ${user.objective}
+`
+        }
       ];
+
       return res.json({
-        reply:`Olá, sou Ária, tua parceira poliglota.
-Vou conversar naturalmente e corrigir apenas quando houver erros.
-Podemos começar seu aprendizado, inclusive preparando para TOEFL se desejar.`
+        reply:`Olá! Eu sou Ária 🌍  
+Sou uma inteligência artificial poliglota e também sua professora.
+
+Posso falar mais de 50 idiomas.
+
+Vou te ajudar principalmente com:
+• Pronúncia  
+• Fonética  
+• Conversação  
+• Gramática  
+
+Primeiro me diga:
+
+Qual idioma você quer aprender?`
       });
     }
 
-    // Modo
-    if(message==="professora"){ userMode[userId]="professora"; return res.json({ reply:"Modo professora ativado. Vou te corrigir quando houver erros e continuar conversando naturalmente." }); }
-    if(message==="casual"){ userMode[userId]="casual"; return res.json({ reply:"Modo casual ativado. Vamos conversar normalmente." }); }
+    /* MODOS */
+    if(message==="professora"){
+      userMode[userId]="professora";
+      return res.json({
+        reply:"Modo professora ativado. Vou corrigir pronúncia, fonética, gramática e continuar conversando naturalmente."
+      });
+    }
 
-    // Limite Free
+    if(message==="casual"){
+      userMode[userId]="casual";
+      return res.json({
+        reply:"Modo casual ativado. Vamos conversar normalmente."
+      });
+    }
+
+    /* LIMITE FREE */
     if(user.plan==="free"){
-      if(user.messagesToday >= 50) return res.json({ reply:"Você atingiu o limite diário de 50 mensagens do plano Free. Torne-se Pro para mensagens ilimitadas!" });
+      if(user.messagesToday >= 50){
+        return res.json({
+          reply:"Você atingiu o limite do plano Free. Torne-se Pro para mensagens ilimitadas e áudio avançado."
+        });
+      }
       user.messagesToday++;
     }
 
-    conversations[userId].push({ role:"user", content:message });
+    conversations[userId].push({
+      role:"user",
+      content:message
+    });
 
     const completion = await openai.chat.completions.create({
       model:"gpt-4.1-mini",
-      messages: conversations[userId]
+      messages: conversations[userId],
+      temperature:0.7
     });
 
     const reply = completion.choices[0].message.content;
-    conversations[userId].push({ role:"assistant", content:reply });
 
-    // Atualiza performance
-    if(reply.includes("**")) user.performance.erros++; else user.performance.acertos++;
+    conversations[userId].push({
+      role:"assistant",
+      content:reply
+    });
 
-    res.json({ reply, performance: user.performance });
+    if(reply.includes("**"))
+      user.performance.erros++;
+    else
+      user.performance.acertos++;
+
+    res.json({
+      reply,
+      performance:user.performance
+    });
 
   }catch(err){
     console.error(err);
@@ -145,72 +247,148 @@ Podemos começar seu aprendizado, inclusive preparando para TOEFL se desejar.`
   }
 });
 
-/* ÁUDIO */
+/* =========================
+ÁUDIO
+========================= */
 app.post("/audio", upload.single("audio"), async (req,res)=>{
   try{
+
     const { userId, nativeLang, learningLang, objective } = req.body;
+
     createUser(userId);
     const user = users[userId];
+
     user.objective = objective || user.objective;
 
     const audioFile = fs.createReadStream(req.file.path);
-    const response = await openai.audio.transcriptions.create({ file: audioFile, model: "gpt-4o-transcribe" });
+
+    const response = await openai.audio.transcriptions.create({
+      file: audioFile,
+      model: "gpt-4o-transcribe"
+    });
+
     const text = response.text;
 
-    if(!conversations[userId]) conversations[userId] = [{ role:"system", content:`${SYSTEM_PROMPT}\nIdioma materno: ${nativeLang}\nIdioma estudado: ${learningLang}\nObjetivo: ${user.objective}` }];
+    if(!conversations[userId]){
+      conversations[userId] = [{
+        role:"system",
+        content: SYSTEM_PROMPT
+      }];
+    }
 
-    conversations[userId].push({ role:"user", content:text });
-    const completion = await openai.chat.completions.create({ model:"gpt-4.1-mini", messages: conversations[userId] });
+    conversations[userId].push({
+      role:"user",
+      content:text
+    });
+
+    const completion = await openai.chat.completions.create({
+      model:"gpt-4.1-mini",
+      messages: conversations[userId]
+    });
+
     const reply = completion.choices[0].message.content;
-    conversations[userId].push({ role:"assistant", content:reply });
 
-    if(reply.includes("**")) user.performance.erros++; else user.performance.acertos++;
+    conversations[userId].push({
+      role:"assistant",
+      content:reply
+    });
 
-    res.json({ text, reply, performance: user.performance });
-  }catch(e){ console.error(e); res.status(500).json({error:"erro audio"}); }
+    if(reply.includes("**"))
+      user.performance.erros++;
+    else
+      user.performance.acertos++;
+
+    res.json({
+      text,
+      reply,
+      performance:user.performance
+    });
+
+  }catch(e){
+    console.error(e);
+    res.status(500).json({error:"erro audio"});
+  }
 });
 
-/* VOZ */
+/* =========================
+VOZ
+========================= */
 app.post("/speak", async (req,res)=>{
   try{
+
     const { text } = req.body;
-    const mp3 = await openai.audio.speech.create({ model:"gpt-4o-mini-tts", voice: "alloy", input: text });
+
+    const mp3 = await openai.audio.speech.create({
+      model:"gpt-4o-mini-tts",
+      voice:"alloy",
+      input:text
+    });
+
     const buffer = Buffer.from(await mp3.arrayBuffer());
+
     res.setHeader("Content-Type","audio/mpeg");
     res.send(buffer);
-  }catch(e){ console.error(e); res.status(500).json({error:"erro voz"}); }
+
+  }catch(e){
+    console.error(e);
+    res.status(500).json({error:"erro voz"});
+  }
 });
 
-/* UPGRADE PRO */
+/* =========================
+UPGRADE PRO
+========================= */
 app.post("/upgrade", async (req,res)=>{
   try{
+
     const { userId, paymentSuccess } = req.body;
+
     if(paymentSuccess && users[userId]){
       users[userId].plan = "pro";
       users[userId].messagesToday = 0;
-      res.json({ success:true, message:"Plano Pro ativado! Mensagens ilimitadas desbloqueadas." });
-    } else res.json({ success:false });
-  }catch(e){ console.error(e); res.status(500).json({error:"erro upgrade"}); }
+
+      res.json({
+        success:true,
+        message:"Plano Pro ativado!"
+      });
+
+    }else{
+      res.json({success:false});
+    }
+
+  }catch(e){
+    console.error(e);
+    res.status(500).json({error:"erro upgrade"});
+  }
 });
 
-/* STRIPE CHECKOUT */
+/* =========================
+STRIPE
+========================= */
 app.post("/create-checkout-session", async (req,res)=>{
+
   const session = await stripe.checkout.sessions.create({
     line_items:[{
       price_data:{
         currency:'brl',
         product_data:{ name:'Ária Pro' },
-        unit_amount: 1900
+        unit_amount:1900
       },
       quantity:1
     }],
     mode:'subscription',
-    success_url: `${req.headers.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${req.headers.origin}/?canceled=true`
+    success_url:`${req.headers.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url:`${req.headers.origin}/?canceled=true`
   });
+
   res.json({ url: session.url });
 });
 
-/* START */
+/* =========================
+START
+========================= */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT,()=>{ console.log("HeyAria online na porta " + PORT) });
+
+app.listen(PORT,()=>{
+  console.log("HeyAria online na porta " + PORT);
+});
