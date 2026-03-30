@@ -253,6 +253,12 @@ Qual idioma você quer aprender?`
 app.post("/audio", upload.single("audio"), async (req,res)=>{
   try{
 
+    if(!req.file){
+      return res.json({
+        reply:"Não consegui ouvir o áudio. Tente novamente."
+      });
+    }
+
     const { userId, nativeLang, learningLang, objective } = req.body;
 
     createUser(userId);
@@ -264,17 +270,23 @@ app.post("/audio", upload.single("audio"), async (req,res)=>{
 
     const response = await openai.audio.transcriptions.create({
       file: audioFile,
-      model: "gpt-4o-transcribe"
+      model: "whisper-1"
     });
 
     const text = response.text;
 
     if(!conversations[userId]){
-      conversations[userId] = [{
-        role:"system",
-        content: SYSTEM_PROMPT
-      }];
-    }
+  conversations[userId] = [{
+    role:"system",
+    content: `
+${SYSTEM_PROMPT}
+
+Idioma materno do usuário: ${nativeLang}
+Idioma que quer aprender: ${learningLang}
+Objetivo: ${user.objective}
+`
+  }];
+}
 
     conversations[userId].push({
       role:"user",
@@ -376,7 +388,7 @@ app.post("/create-checkout-session", async (req,res)=>{
       },
       quantity:1
     }],
-    mode:'subscription',
+    mode:'payment',
     success_url:`${req.headers.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url:`${req.headers.origin}/?canceled=true`
   });
