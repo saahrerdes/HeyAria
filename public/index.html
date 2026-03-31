@@ -29,6 +29,52 @@ input{flex:1;padding:12px;border-radius:20px;border:1px solid #e5e7eb;}
 .typing{font-size:12px;color:#6b7280;padding:0 20px;display:none;}
 .error{background:#fee2e2;color:#b91c1c;padding:2px 4px;border-radius:4px;font-weight:600;}
 audio{width:220px;margin-top:6px;}
+.mode-switch{
+display:flex;
+gap:6px;
+background:#f1f5f9;
+padding:4px;
+border-radius:10px;
+}
+
+.mode{
+flex:1;
+border:none;
+padding:8px;
+border-radius:8px;
+background:transparent;
+cursor:pointer;
+font-weight:500;
+}
+
+.mode.active{
+background:white;
+box-shadow:0 1px 3px rgba(0,0,0,0.1);
+}
+.aria-player{
+position:fixed;
+bottom:90px;
+right:20px;
+background:white;
+padding:8px;
+border-radius:12px;
+box-shadow:0 10px 30px rgba(0,0,0,0.1);
+}
+
+#pauseAria{
+border:none;
+background:#2563eb;
+color:white;
+padding:8px 10px;
+border-radius:8px;
+cursor:pointer;
+}
+.aria-speaking .aria-player{
+box-shadow:
+0 0 10px rgba(37,99,235,0.5),
+0 0 20px rgba(37,99,235,0.4),
+0 0 40px rgba(37,99,235,0.3);
+}
 </style>
 </head>
 <body>
@@ -40,10 +86,18 @@ audio{width:220px;margin-top:6px;}
   
   <div class="side-section">
     Modo:
-    <select id="mode" onchange="setMode()">
-      <option value="professora">Professora</option>
-      <option value="casual">Casual</option>
-    </select>
+    <div class="mode-switch">
+  <button class="mode active" onclick="setMode('professora',this)">Professora</button>
+  <button class="mode" onclick="setMode('casual',this)">Casual</button>
+</div>
+
+  </div>
+ <div class="side-section">
+    Desempenho do aluno:<div id="performance"></div>
+  </div>
+
+ <div class="side-section">
+    Dicionário de erros:<div id="errors"></div>
   </div>
 
   <div class="side-section">
@@ -52,13 +106,6 @@ audio{width:220px;margin-top:6px;}
 
   <div class="side-section" id="planInfo"></div>
 
-  <div class="side-section">
-    Dicionário de erros:<div id="errors"></div>
-  </div>
-
-  <div class="side-section">
-    Desempenho do aluno:<div id="performance"></div>
-  </div>
 </div>
 
 <div class="chat">
@@ -79,7 +126,10 @@ audio{width:220px;margin-top:6px;}
     <button class="mic" id="record">🎤</button>
   </div>
 
-  <audio id="audio" style="display:none"></audio>
+  <div class="aria-player">
+<button id="pauseAria">⏸</button>
+<audio id="audio"></audio>
+</div>
 </div>
 
 <script>
@@ -157,6 +207,7 @@ async function send(){
 
 async function speak(text){
   avatar.classList.add("speaking");
+document.body.classList.add("aria-speaking");
 
   const res=await fetch("/speak",{
     method:"POST",
@@ -172,7 +223,10 @@ async function speak(text){
   audio.src=url;
   audio.play();
 
-  audio.onended=()=>avatar.classList.remove("speaking");
+audio.onended=()=>{
+avatar.classList.remove("speaking");
+document.body.classList.remove("aria-speaking");
+}
 }
 
 async function upgradePro(){
@@ -188,7 +242,15 @@ async function upgradePro(){
     alert("Erro ao abrir pagamento");
   }
 }
-
+pauseAria.onclick=()=>{
+if(audio.paused){
+audio.play()
+pauseAria.innerText="⏸"
+}else{
+audio.pause()
+pauseAria.innerText="▶"
+}
+}
 let mediaRecorder, chunks=[], recording=false;
 
 record.onclick=async()=>{
@@ -221,7 +283,7 @@ record.onclick=async()=>{
 
       typing.style.display="block";
 
-      const res=await fetch("/audio",{ method:"POST", body:form });
+      const res = await fetch("/api/audio-eval", { method: "POST", body: form });
       const data=await res.json();
 
      typing.style.display="none";

@@ -6,12 +6,14 @@ import crypto from "crypto";
 import multer from "multer";
 import fs from "fs";
 import Stripe from "stripe";
+import audioEvalRouter from "./routes/audio-eval.js";
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use("/api", audioEvalRouter);
 app.use(express.static("public"));
 
 /* =========================
@@ -250,7 +252,7 @@ Qual idioma você quer aprender?`
 /* =========================
 ÁUDIO
 ========================= */
-app.post("/audio", upload.single("audio"), async (req,res)=>{
+/*app.post("/audio", upload.single("audio"), async (req,res)=>{
   try{
 
     if(!req.file){
@@ -326,6 +328,7 @@ Objetivo: ${user.objective}
     res.status(500).json({error:"erro audio"});
   }
 });
+*/
 /* =========================
 VOZ
 ========================= */
@@ -336,21 +339,33 @@ app.post("/speak", async (req,res)=>{
 
     const mp3 = await openai.audio.speech.create({
       model:"gpt-4o-mini-tts",
-      voice:"alloy",
-      input:text
+      voice:"nova",
+      input: `
+Fale de forma gentil, suave e feminina.
+Tom de professora paciente e acolhedora.
+Velocidade levemente mais lenta.
+Entonação natural e amigável.
+
+Texto:
+${text}
+`
     });
 
     const buffer = Buffer.from(await mp3.arrayBuffer());
 
-    res.setHeader("Content-Type","audio/mpeg");
-    res.send(buffer);
+    res.writeHead(200,{
+      "Content-Type":"audio/mpeg",
+      "Content-Length":buffer.length,
+      "Cache-Control":"no-cache"
+    });
+
+    res.end(buffer);
 
   }catch(e){
     console.error(e);
     res.status(500).json({error:"erro voz"});
   }
 });
-
 /* =========================
 UPGRADE PRO
 ========================= */
