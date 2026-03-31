@@ -194,7 +194,9 @@ let mediaRecorder, chunks=[], recording=false;
 record.onclick=async()=>{
   if(!recording){
     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    mediaRecorder=new MediaRecorder(stream);
+    mediaRecorder = new MediaRecorder(stream,{
+  mimeType:"audio/webm"
+});
     mediaRecorder.start();
     recording=true;
     record.innerText="⏹️";
