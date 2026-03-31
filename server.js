@@ -266,27 +266,32 @@ app.post("/audio", upload.single("audio"), async (req,res)=>{
 
     user.objective = objective || user.objective;
 
-    const audioFile = fs.createReadStream(req.file.path);
+    // 👇 corrige o problema: adiciona extensão .webm ao arquivo
+    const filePath = req.file.path + ".webm";
+    fs.renameSync(req.file.path, filePath);
 
+    const audioFile = fs.createReadStream(filePath);
+
+    // transcreve áudio usando OpenAI
     const response = await openai.audio.transcriptions.create({
       file: audioFile,
-      model: "whisper-1"
+      model: "gpt-4o-transcribe"
     });
 
     const text = response.text;
 
     if(!conversations[userId]){
-  conversations[userId] = [{
-    role:"system",
-    content: `
+      conversations[userId] = [{
+        role:"system",
+        content: `
 ${SYSTEM_PROMPT}
 
 Idioma materno do usuário: ${nativeLang}
 Idioma que quer aprender: ${learningLang}
 Objetivo: ${user.objective}
 `
-  }];
-}
+      }];
+    }
 
     conversations[userId].push({
       role:"user",
@@ -321,7 +326,6 @@ Objetivo: ${user.objective}
     res.status(500).json({error:"erro audio"});
   }
 });
-
 /* =========================
 VOZ
 ========================= */
