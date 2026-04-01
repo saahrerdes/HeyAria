@@ -11,12 +11,12 @@ import audioEvalRouter from "./routes/audio-eval.js";
 /* =========================
 UPLOAD
 ========================= */
-const upload = multer({ dest: "uploads/" });
-
-
 dotenv.config();
 
 const app = express();
+
+const upload = multer({ dest: "uploads/" });
+
 
 /* =========================
 MIDDLEWARES
