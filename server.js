@@ -8,22 +8,17 @@ import fs from "fs";
 import Stripe from "stripe";
 import audioEvalRouter from "./routes/audio-eval.js";
 
-/* =========================
-UPLOAD
-========================= */
 dotenv.config();
 
 const app = express();
-
 const upload = multer({ dest: "uploads/" });
-
 
 /* =========================
 MIDDLEWARES
 ========================= */
 app.use(cors());
 app.use(express.json());
-app.use("/api", audioEvalRouter); // ← suas rotas atuais de áudio
+app.use("/api", audioEvalRouter);
 /* =========================
 UPLOAD DE ARQUIVO
 ========================= */
