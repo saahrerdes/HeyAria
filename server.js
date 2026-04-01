@@ -16,12 +16,74 @@ MIDDLEWARES
 app.use(cors());
 app.use(express.json());
 app.use("/api", audioEvalRouter); // ← suas rotas atuais de áudio
+/* =========================
+UPLOAD DE ARQUIVO
+========================= */
+
+app.post("/api/upload-file", upload.single("file"), async (req, res) => {
+  try {
+
+    if (!req.file) {
+      return res.json({ success: false });
+    }
+
+    const fileName = req.file.originalname;
+
+    res.json({
+      success: true,
+      reply: `Recebi seu arquivo "${fileName}". Posso analisar ele para você.`
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
+  }
+});
 app.use(express.static("public"));
 
 /* =========================
 NOVAS ROTAS (PASSO 3)
 ========================= */
+// Ler conteúdo do arquivo enviado
+app.post("/api/read-file", upload.single("file"), async (req,res)=>{
 
+  try{
+
+    if(!req.file){
+      return res.status(400).json({error:"Arquivo não enviado"});
+    }
+
+    const filePath = req.file.path;
+
+    // lê conteúdo do arquivo
+    const content = fs.readFileSync(filePath,"utf-8");
+
+    const completion = await openai.chat.completions.create({
+      model:"gpt-4.1-mini",
+      messages:[
+        {
+          role:"system",
+          content:"Você é Ária. Leia o conteúdo enviado e explique para o aluno de forma clara."
+        },
+        {
+          role:"user",
+          content:content
+        }
+      ]
+    });
+
+    const reply = completion.choices[0].message.content;
+
+    res.json({ reply });
+
+    fs.unlinkSync(filePath);
+
+  }catch(err){
+    console.error(err);
+    res.status(500).json({error:"erro ler arquivo"});
+  }
+
+});
 // Upload de arquivo
 app.post("/api/upload-file", upload.single("file"), async (req,res)=>{
   if(!req.file) return res.status(400).json({error:"Arquivo não enviado"});
@@ -60,12 +122,6 @@ app.post("/chat", async (req,res)=>{ /* ... sua lógica atual ... */ });
 app.post("/speak", async (req,res)=>{ /* ... */ });
 app.post("/upgrade", async (req,res)=>{ /* ... */ });
 app.post("/create-checkout-session", async (req,res)=>{ /* ... */ });
-
-/* =========================
-INICIAR SERVIDOR
-========================= */
-const PORT = process.env.PORT || 3000;
-app.listen(PORT,()=>{ console.log("HeyAria online na porta " + PORT); });
 
 /* =========================
 OPENAI
@@ -199,6 +255,11 @@ app.post("/chat", async (req,res)=>{
   try{
 
     const {message, userId, nativeLang, learningLang, objective} = req.body;
+let deepMode = false;
+
+if(message.startsWith("INVESTIGUE PROFUNDAMENTE")){
+  deepMode = true;
+}
 
     createUser(userId);
     const user = users[userId];
@@ -273,7 +334,15 @@ Qual idioma você quer aprender?`
 
     const completion = await openai.chat.completions.create({
       model:"gpt-4.1-mini",
-      messages: conversations[userId],
+      messages: [
+  {
+    role:"system",
+    content: deepMode
+      ? "Você está no modo investigação profunda. Analise detalhadamente, quebre em partes, explique passo a passo, forneça conclusão, exemplos e seja extremamente detalhada."
+      : SYSTEM_PROMPT
+  },
+  ...conversations[userId]
+],
       temperature:0.7
     });
 
@@ -471,6 +540,6 @@ START
 ========================= */
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT,()=>{
+app.listen(PORT, () => {
   console.log("HeyAria online na porta " + PORT);
 });

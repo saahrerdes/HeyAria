@@ -233,39 +233,65 @@ box-shadow:
 <body>
 
 <div class="sidebar">
-  <div class="logo"><img src="/images/aria.png" class="logo-avatar">Ária</div>
-  <button class="side-btn" onclick="newChat()">+ Novo chat</button>
-  <input class="search" placeholder="Procurar conversa..." oninput="searchChat(this.value)">
   
+  <div class="logo">
+    <img src="/images/aria.png" class="logo-avatar">Ária
+  </div>
+
+  <button class="side-btn" onclick="newChat()">+ Novo chat</button>
+
+  <input class="search" placeholder="Procurar conversa..." oninput="searchChat(this.value)">
+
+  <!-- MODO -->
   <div class="side-section">
     Modo:
     <div class="mode-switch">
-  <button class="mode active" onclick="setMode('professora',this)">Professora</button>
-  <button class="mode" onclick="setMode('casual',this)">Casual</button>
-</div>
-
-  </div>
- <div class="side-section">
-    Desempenho do aluno:<div id="performance"></div>
-
-<div class="side-section">
-  Funcionalidades extras:
-  <button class="side-btn" onclick="uploadFile()">📁 Enviar arquivo</button>
-  <input type="file" id="fileInput" style="display:none" onchange="handleFile(event)">
-  
-  <button class="side-btn" onclick="analyzeDeep()">🔍 Investigar a fundo</button>
-  <button class="side-btn" onclick="generateImage()">🖼 Gerar imagem</button>
-</div>
+      <button class="mode active" onclick="setMode('professora',this)">Professora</button>
+      <button class="mode" onclick="setMode('casual',this)">Casual</button>
+    </div>
   </div>
 
- <div class="side-section">
-    Dicionário de erros:<div id="errors"></div>
-  </div>
-
+  <!-- UPLOAD ARQUIVO -->
   <div class="side-section">
-    <button class="side-btn" onclick="upgradePro()">🌟 Tornar-se Pro</button>
+    <label for="fileInput" class="side-btn" style="cursor:pointer;">
+      📎 Enviar arquivo
+    </label>
+    <input type="file" id="fileInput" style="display:none;" />
   </div>
 
+  <!-- FUNCIONALIDADES IA -->
+  <div class="side-section">
+    Funcionalidades IA:
+    
+    <button class="side-btn" onclick="analyzeDeep()">
+      🔍 Investigar a fundo
+    </button>
+
+    <button class="side-btn" onclick="generateImage()">
+      🖼 Gerar imagem
+    </button>
+  </div>
+
+  <!-- DESEMPENHO -->
+  <div class="side-section">
+    Desempenho do aluno:
+    <div id="performance"></div>
+  </div>
+
+  <!-- DICIONÁRIO -->
+  <div class="side-section">
+    Dicionário de erros:
+    <div id="errors"></div>
+  </div>
+
+  <!-- PRO -->
+  <div class="side-section">
+    <button class="side-btn" onclick="upgradePro()">
+      🌟 Tornar-se Pro
+    </button>
+  </div>
+
+  <!-- INFO PLANO -->
   <div class="side-section" id="planInfo"></div>
 
 </div>
@@ -387,9 +413,14 @@ function addAudio(url,type){
   behavior: 'smooth'
 });
 }
-
 async function send(){
-  const text=document.getElementById("text").value;
+
+  let text=document.getElementById("text").value;
+
+  if(deepMode){
+    text = "INVESTIGUE PROFUNDAMENTE:\n\n" + text;
+  }
+
   document.getElementById("text").value="";
   if(!text) return;
 
@@ -510,6 +541,7 @@ if(data.reply){
   }
 }
 let currentMode="professora";
+let deepMode = false;
 
 function setMode(mode,el){
 
@@ -585,18 +617,15 @@ async function handleFile(event) {
 
 // Analisar profundamente (tipo investigar)
 async function analyzeDeep() {
-  const text = prompt("Digite o que quer investigar a fundo:");
-  if(!text) return;
 
-  const res = await fetch("/api/deep", {
-    method:"POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ userId, text })
-  });
+  deepMode = !deepMode;
 
-  const data = await res.json();
-  add(text,"user");
-  add(data.reply,"bot");
+  if(deepMode){
+    add("🔍 Modo investigação profunda ativado. Envie qualquer pergunta.", "bot");
+  }else{
+    add("Modo investigação desativado.", "bot");
+  }
+
 }
 
 // Gerar imagem
@@ -613,6 +642,40 @@ async function generateImage() {
   const data = await res.json();
   add(`Imagem gerada: <a href="${data.url}" target="_blank">Ver imagem</a>`,"bot");
 }
+/* =========================
+UPLOAD DE ARQUIVO
+========================= */
+
+const fileInput = document.getElementById("fileInput");
+
+fileInput.addEventListener("change", async () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const form = new FormData();
+  form.append("file", file);
+
+  try {
+    const res = await fetch("/api/read-file", {
+      method: "POST",
+      body: form
+    });
+
+    const data = await res.json();
+
+    add("📎 Arquivo enviado: " + file.name, "user");
+    add(data.reply || "Arquivo recebido.", "bot");
+
+speak(data.reply);
+
+  } catch (err) {
+    console.error(err);
+    add("Erro ao enviar arquivo", "bot");
+  }
+
+  fileInput.value = "";
+});
+
 </script>
 
 </body>
