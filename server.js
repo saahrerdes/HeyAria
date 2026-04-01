@@ -10,11 +10,62 @@ import audioEvalRouter from "./routes/audio-eval.js";
 
 dotenv.config();
 
-const app = express();
+/* =========================
+MIDDLEWARES
+========================= */
 app.use(cors());
 app.use(express.json());
-app.use("/api", audioEvalRouter);
+app.use("/api", audioEvalRouter); // ← suas rotas atuais de áudio
 app.use(express.static("public"));
+
+/* =========================
+NOVAS ROTAS (PASSO 3)
+========================= */
+
+// Upload de arquivo
+app.post("/api/upload-file", upload.single("file"), async (req,res)=>{
+  if(!req.file) return res.status(400).json({error:"Arquivo não enviado"});
+  res.json({ success:true, name:req.file.originalname, path:req.file.path, reply:"Arquivo recebido!" });
+});
+
+// Análise profunda de texto
+app.post("/api/deep-analyze", async (req,res)=>{
+  const { message } = req.body;
+  const completion = await openai.chat.completions.create({
+    model:"gpt-4.1-mini",
+    messages:[{ role:"user", content: message }]
+  });
+  const reply = completion.choices[0].message.content;
+  res.json({ reply });
+});
+
+// Gerar imagem
+app.post("/api/generate-image", async (req,res)=>{
+  const { prompt } = req.body;
+  const image = await openai.images.generate({
+    model:"gpt-image-1",
+    prompt,
+    size:"1024x1024"
+  });
+  const url = image.data[0].url;
+  res.json({ url });
+});
+
+/* =========================
+ROTAS EXISTENTES
+========================= */
+app.get("/", (req,res)=> res.send("HeyAria online"));
+
+app.post("/chat", async (req,res)=>{ /* ... sua lógica atual ... */ });
+app.post("/speak", async (req,res)=>{ /* ... */ });
+app.post("/upgrade", async (req,res)=>{ /* ... */ });
+app.post("/create-checkout-session", async (req,res)=>{ /* ... */ });
+
+/* =========================
+INICIAR SERVIDOR
+========================= */
+const PORT = process.env.PORT || 3000;
+app.listen(PORT,()=>{ console.log("HeyAria online na porta " + PORT); });
 
 /* =========================
 OPENAI

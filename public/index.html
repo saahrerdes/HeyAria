@@ -18,17 +18,10 @@ body{margin:0;font-family:system-ui,-apple-system,Arial;background:#f6f7fb;heigh
 .avatar.speaking{box-shadow:0 0 0 4px rgba(37,99,235,0.2),0 0 20px rgba(37,99,235,0.6),0 0 40px rgba(37,99,235,0.4);transform:scale(1.05);}
 .name{font-weight:600;}
 .sub{font-size:12px;color:#6b7280;}
-.messages{flex:1;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:10px;background:#f9fafb;}
-.msg{padding:12px 16px;border-radius:16px;max-width:70%;white-space:pre-wrap;}
-.user{background:#2563eb;color:white;align-self:flex-end;}
-.bot{background:white;border:1px solid #e5e7eb;align-self:flex-start;}
 .input{display:flex;padding:12px;gap:8px;border-top:1px solid #eee;background:white;}
 input{flex:1;padding:12px;border-radius:20px;border:1px solid #e5e7eb;}
 .send{background:#2563eb;color:white;border:none;padding:10px 16px;border-radius:20px;}
 .mic{background:#06b6d4;color:white;border:none;padding:10px;border-radius:50%;}
-.typing{font-size:12px;color:#6b7280;padding:0 20px;display:none;}
-.error{background:#fee2e2;color:#b91c1c;padding:2px 4px;border-radius:4px;font-weight:600;}
-audio{width:220px;margin-top:6px;}
 .mode-switch{
 display:flex;
 gap:6px;
@@ -75,6 +68,166 @@ box-shadow:
 0 0 20px rgba(37,99,235,0.4),
 0 0 40px rgba(37,99,235,0.3);
 }
+/* Fundo do chat */
+.messages{
+  flex:1;
+  overflow:auto;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  background:#f9fafb;
+  font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size:15px;
+  line-height:1.6;
+}
+
+/* Bolhas de mensagem */
+.msg{
+  padding:14px 18px;
+  border-radius:18px;
+  max-width:680px;
+  word-wrap:break-word;
+  font-weight:400;
+  font-size:15px;
+}
+/* Hover nas bolhas */
+.msg:hover {
+  filter: brightness(0.97);
+  transform: scale(1.02);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+/* Usuário */
+.user{
+  background:#2563eb;
+  color:white;
+  align-self:flex-end;
+  box-shadow:0 4px 12px rgba(0,0,0,0.12); /* sombra mais suave e difusa */
+  font-weight:500;
+  font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* Ária (bot) */
+.bot{
+  background:white;
+  border:1px solid #e5e7eb;
+  align-self:flex-start;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08); /* sombra mais leve */
+  font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight:400;
+}
+/* Hover nas bolhas do usuário */
+.msg.user:hover {
+  transform: translateY(-2px); /* levanta levemente a bolha */
+  box-shadow: 0 6px 14px rgba(0,0,0,0.15); /* sombra um pouco maior */
+  transition: all 0.2s ease; /* suaviza a animação */
+}
+
+/* Hover nas bolhas da Ária */
+.msg.bot:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+
+/* Desempenho do aluno */
+#performance {
+  font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight:600;
+  font-size:14px;
+  color:#111827;
+  line-height:1.5;
+  margin-top:6px;
+  padding:8px 10px;
+  background:#f1f5f9;
+  border-radius:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+  max-height:200px;
+  overflow-y:auto;
+}
+
+/* Dicionário de erros */
+#errors {
+  font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight:500;
+  font-size:13px;
+  color:#b91c1c;
+  line-height:1.4;
+  margin-top:4px;
+  padding:8px 10px;
+  background:#fff1f1;
+  border-radius:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.05);
+  max-height:200px;
+  overflow-y:auto;
+}
+
+/* Cada erro individual */
+.error-item {
+  padding:6px 8px;
+  margin:4px 0;
+  background:#fee2e2;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:500;
+  color:#991b1b;
+}
+/* Animação do avatar quando Ária fala */
+.avatar.speaking {
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 rgba(37,99,235,0.3); }
+  50% { transform: scale(1.05); box-shadow: 0 0 10px rgba(37,99,235,0.5), 0 0 20px rgba(37,99,235,0.4), 0 0 30px rgba(37,99,235,0.3); }
+  100% { transform: scale(1); box-shadow: 0 0 0 rgba(37,99,235,0.3); }
+}
+
+/* Sombra extra no corpo quando Ária fala */
+.aria-speaking {
+  transition: box-shadow 0.3s ease;
+  box-shadow: inset 0 0 50px rgba(37,99,235,0.1);
+}
+/* Indicador de Ária digitando */
+.typing {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #6b7280;
+  padding: 6px 14px;
+  margin-bottom: 4px;
+  background: #f3f4f6;
+  border-radius: 12px;
+  max-width: 200px;
+  animation: blink 1.4s infinite;
+}
+
+/* Bolinhas de digitação animadas */
+.typing::after {
+  content: '• • •';
+  display: inline-block;
+  animation: dots 1.4s infinite;
+}
+
+@keyframes dots {
+  0%, 20% { content: '•   •   •'; }
+  40% { content: '• •   •'; }
+  60% { content: '• • •'; }
+  80%, 100% { content: '•   •   •'; }
+}
+
+/* Pulsando quando ouvindo áudio */
+.aria-listening .avatar {
+  animation: listening 1s infinite;
+}
+
+@keyframes listening {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
 </style>
 </head>
 <body>
@@ -94,6 +247,15 @@ box-shadow:
   </div>
  <div class="side-section">
     Desempenho do aluno:<div id="performance"></div>
+
+<div class="side-section">
+  Funcionalidades extras:
+  <button class="side-btn" onclick="uploadFile()">📁 Enviar arquivo</button>
+  <input type="file" id="fileInput" style="display:none" onchange="handleFile(event)">
+  
+  <button class="side-btn" onclick="analyzeDeep()">🔍 Investigar a fundo</button>
+  <button class="side-btn" onclick="generateImage()">🖼 Gerar imagem</button>
+</div>
   </div>
 
  <div class="side-section">
@@ -125,11 +287,6 @@ box-shadow:
     <button class="send" onclick="send()">Enviar</button>
     <button class="mic" id="record">🎤</button>
   </div>
-
-  <div class="aria-player">
-<button id="pauseAria">⏸</button>
-<audio id="audio"></audio>
-</div>
 </div>
 
 <script>
@@ -149,9 +306,16 @@ function highlight(text){
     .replace(/\n/g,"<br>");
 }
 
+const savedErrors = new Set();
+
 function saveErrors(text){
   const matches=[...text.matchAll(/\*\*(.*?)\*\*/g)];
+
   matches.forEach(m=>{
+    if(savedErrors.has(m[1])) return;  // evita duplicados
+
+    savedErrors.add(m[1]);
+
     const div=document.createElement("div");
     div.className="error-item";
     div.innerText=m[1];
@@ -165,8 +329,10 @@ function add(text,type){
   div.innerHTML=highlight(text);
   messages.appendChild(div);
   if(type==="bot") saveErrors(text);
-  messages.scrollTop=messages.scrollHeight;
-}
+ messages.scrollTo({
+  top: messages.scrollHeight,
+  behavior: "smooth"
+});
 
 function addAudio(url,type){
   const div=document.createElement("div");
@@ -176,7 +342,50 @@ function addAudio(url,type){
   audio.src=url;
   div.appendChild(audio);
   messages.appendChild(div);
-  messages.scrollTop=messages.scrollHeight;
+
+  messages.scrollTo({
+    top: messages.scrollHeight,
+    behavior: "smooth"
+  });
+}
+
+  // Cria botão play/pause
+  const btn = document.createElement("button");
+  btn.innerText = "▶";
+  btn.style.border = "none";
+  btn.style.background = "#2563eb";
+  btn.style.color = "white";
+  btn.style.padding = "6px 10px";
+  btn.style.borderRadius = "12px";
+  btn.style.cursor = "pointer";
+  btn.style.marginRight = "8px";
+
+
+  // Quando clicar no botão
+  btn.onclick = () => {
+    if(audio.paused){
+      audio.play();
+      btn.innerText = "⏸";
+    } else {
+      audio.pause();
+      btn.innerText = "▶";
+    }
+  };
+
+  // Quando o áudio terminar, volta para ▶
+  audio.onended = () => {
+    btn.innerText = "▶";
+  };
+
+  // Adiciona botão e áudio na bolha
+  div.appendChild(btn);
+  div.appendChild(audio);
+
+  messages.appendChild(div);
+  messages.scrollTo({
+  top: messages.scrollHeight,
+  behavior: 'smooth'
+});
 }
 
 async function send(){
@@ -184,8 +393,16 @@ async function send(){
   document.getElementById("text").value="";
   if(!text) return;
 
+  // Som de clique
+  const clickSound = new Audio('/sounds/click.mp3'); // você precisa criar essa pasta e som
+  clickSound.volume = 0.2;
+  clickSound.play();
+
   add(text,"user");
-  typing.style.display="block";
+  setTyping(true);
+
+  // resto da função...
+}
 
   const res=await fetch("/chat",{
     method:"POST",
@@ -199,34 +416,39 @@ async function send(){
   });
 
   const data=await res.json();
-  typing.style.display="none";
+ setTyping(false);
   add(data.reply,"bot");
 
   speak(data.reply);
 }
 
 async function speak(text){
-  avatar.classList.add("speaking");
-document.body.classList.add("aria-speaking");
 
-  const res=await fetch("/speak",{
+  avatar.classList.add("speaking");
+  document.body.classList.add("aria-speaking");
+
+  const formatted = text
+    .replace(/Pronúncia lenta:/gi,"Pronúncia lenta... ")
+    .replace(/Pronúncia natural:/gi,". Pronúncia natural... ");
+
+  const res = await fetch("/speak",{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({text})
+    body:JSON.stringify({text:formatted})
   });
 
-  const blob=await res.blob();
-  const url=URL.createObjectURL(blob);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
 
+  // Usa o novo addAudio
   addAudio(url,"bot");
 
-  audio.src=url;
-  audio.play();
-
-audio.onended=()=>{
-avatar.classList.remove("speaking");
-document.body.classList.remove("aria-speaking");
-}
+  // Remove classe speaking quando terminar
+  const tempAudio = new Audio(url);
+  tempAudio.onended = ()=>{
+    avatar.classList.remove("speaking");
+    document.body.classList.remove("aria-speaking");
+  };
 }
 
 async function upgradePro(){
@@ -242,15 +464,7 @@ async function upgradePro(){
     alert("Erro ao abrir pagamento");
   }
 }
-pauseAria.onclick=()=>{
-if(audio.paused){
-audio.play()
-pauseAria.innerText="⏸"
-}else{
-audio.pause()
-pauseAria.innerText="▶"
-}
-}
+
 let mediaRecorder, chunks=[], recording=false;
 
 record.onclick=async()=>{
@@ -281,12 +495,12 @@ record.onclick=async()=>{
       form.append("nativeLang",nativeLang);
       form.append("learningLang",learningLang);
 
-      typing.style.display="block";
+      setTyping(true);
 
       const res = await fetch("/api/audio-eval", { method: "POST", body: form });
       const data=await res.json();
 
-     typing.style.display="none";
+     setTyping(false);
 
 if(data.reply){
   add(data.reply,"bot");
@@ -294,6 +508,110 @@ if(data.reply){
 }
     }
   }
+}
+let currentMode="professora";
+
+function setMode(mode,el){
+
+  currentMode = mode;
+
+  // Remove classe active de todos os botões
+  document.querySelectorAll(".mode")
+    .forEach(b=>b.classList.remove("active"));
+
+  // Adiciona classe active no botão clicado
+  el.classList.add("active");
+
+  // Envia modo para o servidor
+  sendMode(mode);
+}
+
+async function sendMode(mode){
+
+  await fetch("/chat",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({
+      message:mode,
+      userId,
+      nativeLang,
+      learningLang
+    })
+  });
+
+}
+// Indica quando Ária está digitando
+function setTyping(state){
+  if(state){
+    typing.innerText = "Ária está digitando...";
+    typing.style.display = "flex";
+    document.body.classList.remove("aria-listening"); // remove animação de ouvir
+  } else {
+    typing.style.display = "none";
+  }
+}
+
+// Indica quando Ária está ouvindo (áudio)
+function setListening(state){
+  if(state){
+    document.body.classList.add("aria-listening"); // avatar pulsa
+    typing.innerText = "Ária está ouvindo...";
+    typing.style.display = "flex";
+  } else {
+    document.body.classList.remove("aria-listening");
+    typing.style.display = "none";
+  }
+}
+// Abrir seletor de arquivo
+function uploadFile() {
+  document.getElementById('fileInput').click();
+}
+
+// Quando usuário seleciona arquivo
+async function handleFile(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+
+  const form = new FormData();
+  form.append("file", file);
+  form.append("userId", userId);
+
+  const res = await fetch("/api/upload-file", { method: "POST", body: form });
+  const data = await res.json();
+
+  add(`Arquivo enviado: ${file.name}`,"user");
+  add(data.reply,"bot");
+}
+
+// Analisar profundamente (tipo investigar)
+async function analyzeDeep() {
+  const text = prompt("Digite o que quer investigar a fundo:");
+  if(!text) return;
+
+  const res = await fetch("/api/deep", {
+    method:"POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ userId, text })
+  });
+
+  const data = await res.json();
+  add(text,"user");
+  add(data.reply,"bot");
+}
+
+// Gerar imagem
+async function generateImage() {
+  const promptText = prompt("Descreva a imagem que deseja gerar:");
+  if(!promptText) return;
+
+  const res = await fetch("/api/image", {
+    method:"POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ userId, prompt: promptText })
+  });
+
+  const data = await res.json();
+  add(`Imagem gerada: <a href="${data.url}" target="_blank">Ver imagem</a>`,"bot");
 }
 </script>
 
