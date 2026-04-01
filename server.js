@@ -10,6 +10,8 @@ import audioEvalRouter from "./routes/audio-eval.js";
 
 dotenv.config();
 
+const app = express();
+
 /* =========================
 MIDDLEWARES
 ========================= */
