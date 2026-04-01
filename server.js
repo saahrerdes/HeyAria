@@ -8,6 +8,12 @@ import fs from "fs";
 import Stripe from "stripe";
 import audioEvalRouter from "./routes/audio-eval.js";
 
+/* =========================
+UPLOAD
+========================= */
+const upload = multer({ dest: "uploads/" });
+
+
 dotenv.config();
 
 const app = express();
@@ -143,10 +149,6 @@ if (!process.env.STRIPE_KEY) {
 }
 const stripe = new Stripe(process.env.STRIPE_KEY, { apiVersion: "2022-11-15" });
 
-/* =========================
-UPLOAD
-========================= */
-const upload = multer({ dest: "uploads/" });
 
 /* =========================
 MEMÓRIA
