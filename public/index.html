@@ -228,66 +228,146 @@ box-shadow:
   50% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
+/* =========================
+SIDEBAR E SEÇÕES
+========================= */
+.sidebar {
+  width: 260px;
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-right: 1px solid #ddd;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.side-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.side-section {
+  background-color: #fff;
+  padding: 12px 10px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.side-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+/* BOTÕES */
+.side-btn {
+  background-color: #6b5dd5;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.side-btn:hover {
+  background-color: #5843a8;
+}
+
+/* ÁREA DE ANÁLISE */
+.analysis-container {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.analysis-section {
+  background-color: #fff;
+  padding: 12px 10px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.analysis-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #333;
+}
+
 </style>
 </head>
 <body>
 
 <div class="sidebar">
-  
+ 
   <div class="logo">
     <img src="/images/aria.png" class="logo-avatar">Ária
   </div>
 
-  <button class="side-btn" onclick="newChat()">+ Novo chat</button>
-
-  <input class="search" placeholder="Procurar conversa..." oninput="searchChat(this.value)">
-
-  <!-- MODO -->
+<div class="side-container">
+  <!-- Modos -->
   <div class="side-section">
-    Modo:
-    <div class="mode-switch">
-      <button class="mode active" onclick="setMode('professora',this)">Professora</button>
-      <button class="mode" onclick="setMode('casual',this)">Casual</button>
-    </div>
+    <h3>Modo de Interação</h3>
+    <button class="side-btn" onclick="setMode('professora')">👩‍🏫 Professora</button>
+    <button class="side-btn" onclick="setMode('casual')">😄 Casual</button>
   </div>
 
-  <!-- UPLOAD ARQUIVO -->
+  <!-- Enviar Arquivo -->
   <div class="side-section">
-  <button class="side-btn" onclick="analyzeDeep()">
-    🔍 Investigar a fundo
-  </button>
-  <button class="side-btn" onclick="generateImage()">
-    🖼 Gerar imagem
-  </button>
-</div>
+    <label for="fileInput" class="side-btn" style="cursor:pointer;">
+      📎 Enviar arquivo
+    </label>
+    <input type="file" id="fileInput" style="display:none;" />
+  </div>
 
-<div class="side-section">
-  <h3>Desempenho do Aluno</h3>
-  <p id="student-performance" class="side-text">Carregando...</p>
-</div>
-
-<label for="fileInput" class="side-btn" style="cursor:pointer;">
-  📎 Enviar arquivo
-</label>
-<input type="file" id="fileInput" style="display:none;" />
-<div class="side-section">
-  <h3>Dicionário de Erros</h3>
-  <ul id="error-dictionary" class="side-text">
-    <li>Carregando...</li>
-  </ul>
-</div>
-
-<div class="side-section">
-  <h3>Texto Analisado</h3>
-  <p id="analyzed-text" class="side-text">Carregando...</p>
-</div>
-
-  <!-- PRO -->
+  <!-- Gerar Imagem -->
   <div class="side-section">
-    <button class="side-btn" onclick="upgradePro()">
-      🌟 Tornar-se Pro
+    <button class="side-btn" onclick="generateImage()">
+      🖼 Gerar imagem
     </button>
   </div>
+
+  <!-- Dicionário de Erros -->
+  <div class="side-section">
+    <h3>Dicionário de Erros</h3>
+    <ul id="error-dictionary">
+      <li>Carregando...</li>
+    </ul>
+  </div>
+
+  <!-- Desempenho do Aluno -->
+<div class="side-section">
+  <h3>Desempenho do Aluno</h3>
+  <p id="student-performance">Carregando...</p>
+</div>
+
+<div class="side-section">
+  <button class="side-btn" id="new-chat-btn">
+    🔄 Nova conversa
+  </button>
+</div>
+
+<!-- Tornar-se Pro -->
+<div class="side-section">
+  <button class="side-btn" onclick="upgradePro()">
+    💎 Tornar-se Pro
+  </button>
+</div>
+</div>
+
+<!-- Área de Análise de Texto -->
+<div class="analysis-container">
+  <div class="analysis-section">
+    <h3>Texto Analisado</h3>
+    <p id="analyzed-text">Carregando...</p>
+  </div>
+</div>
+</div>
+  <input class="search" placeholder="Procurar conversa..." oninput="searchChat(this.value)">
 
   <!-- INFO PLANO -->
   <div class="side-section" id="planInfo"></div>
@@ -707,6 +787,29 @@ speak(data.reply);
   }
 
   fileInput.value = "";
+});
+// =========================
+// NOVO CHAT
+// =========================
+const newChatBtn = document.getElementById("new-chat-btn");
+
+newChatBtn.addEventListener("click", () => {
+  if (!confirm("Tem certeza que quer iniciar uma nova conversa?")) return;
+
+  document.getElementById("analyzed-text").textContent = "Carregando...";
+  document.getElementById("student-performance").textContent = "Carregando...";
+
+  const errorDict = document.getElementById("error-dictionary");
+  errorDict.innerHTML = "<li>Carregando...</li>";
+
+  const searchInput = document.querySelector(".search");
+  if (searchInput) searchInput.value = "";
+
+  messages.innerHTML = "";
+alert("Nova conversa iniciada! Ária está pronta para você.");
+
+  const chatInput = document.getElementById("text");
+  if (chatInput) chatInput.focus();
 });
 
 </script>
