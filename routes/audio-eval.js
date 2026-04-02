@@ -19,8 +19,14 @@ router.post("/audio-eval", upload.single("audio"), async (req, res) => {
 
     const { userId, nativeLang, learningLang } = req.body;
 
-    const filePath = req.file.path + ".webm";
-    fs.renameSync(req.file.path, filePath);
+    let filePath = req.file.path;
+
+// Se quiser forçar extensão .webm
+if (!filePath.endsWith(".webm")) {
+  const newPath = req.file.path + ".webm";
+  fs.renameSync(req.file.path, newPath);
+  filePath = newPath;
+}
 
     /* =========================
        1. TRANSCRIÇÃO (WHISPER)

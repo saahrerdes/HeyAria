@@ -253,36 +253,34 @@ box-shadow:
 
   <!-- UPLOAD ARQUIVO -->
   <div class="side-section">
-    <label for="fileInput" class="side-btn" style="cursor:pointer;">
-      📎 Enviar arquivo
-    </label>
-    <input type="file" id="fileInput" style="display:none;" />
-  </div>
+  <button class="side-btn" onclick="analyzeDeep()">
+    🔍 Investigar a fundo
+  </button>
+  <button class="side-btn" onclick="generateImage()">
+    🖼 Gerar imagem
+  </button>
+</div>
 
-  <!-- FUNCIONALIDADES IA -->
-  <div class="side-section">
-    Funcionalidades IA:
-    
-    <button class="side-btn" onclick="analyzeDeep()">
-      🔍 Investigar a fundo
-    </button>
+<div class="side-section">
+  <h3>Desempenho do Aluno</h3>
+  <p id="student-performance" class="side-text">Carregando...</p>
+</div>
 
-    <button class="side-btn" onclick="generateImage()">
-      🖼 Gerar imagem
-    </button>
-  </div>
+<label for="fileInput" class="side-btn" style="cursor:pointer;">
+  📎 Enviar arquivo
+</label>
+<input type="file" id="fileInput" style="display:none;" />
+<div class="side-section">
+  <h3>Dicionário de Erros</h3>
+  <ul id="error-dictionary" class="side-text">
+    <li>Carregando...</li>
+  </ul>
+</div>
 
-  <!-- DESEMPENHO -->
-  <div class="side-section">
-    Desempenho do aluno:
-    <div id="performance"></div>
-  </div>
-
-  <!-- DICIONÁRIO -->
-  <div class="side-section">
-    Dicionário de erros:
-    <div id="errors"></div>
-  </div>
+<div class="side-section">
+  <h3>Texto Analisado</h3>
+  <p id="analyzed-text" class="side-text">Carregando...</p>
+</div>
 
   <!-- PRO -->
   <div class="side-section">
@@ -425,14 +423,40 @@ async function send(){
   if(!text) return;
 
   // Som de clique
-  const clickSound = new Audio('/sounds/click.mp3'); // você precisa criar essa pasta e som
+  const clickSound = new Audio('/sounds/click.mp3'); 
   clickSound.volume = 0.2;
   clickSound.play();
 
+  // Adiciona a mensagem do usuário na tela
   add(text,"user");
   setTyping(true);
 
-  // resto da função...
+  try {
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: text,
+        userId,
+        nativeLang,
+        learningLang
+      })
+    });
+
+    const data = await res.json();
+    setTyping(false);
+
+    // Adiciona resposta da Ária
+    if(data.reply){
+      add(data.reply,"bot");
+      speak(data.reply);
+    }
+
+  } catch(err){
+    console.error(err);
+    setTyping(false);
+    add("Erro ao enviar mensagem","bot");
+  }
 }
 
   const res=await fetch("/chat",{
@@ -515,30 +539,39 @@ record.onclick=async()=>{
     record.innerText="🎤";
 
     mediaRecorder.onstop=async()=>{
-      const blob=new Blob(chunks,{type:"audio/webm"});
-      const url=URL.createObjectURL(blob);
+  const blob=new Blob(chunks,{type:"audio/webm"});
 
-      addAudio(url,"user");
+  const form=new FormData();
+  form.append("audio", blob, "audio.webm");
+  form.append("userId",userId);
+  form.append("nativeLang",nativeLang);
+  form.append("learningLang",learningLang);
 
-      const form=new FormData();
-      form.append("audio", blob, "audio.webm");
-      form.append("userId",userId);
-      form.append("nativeLang",nativeLang);
-      form.append("learningLang",learningLang);
+  setTyping(true);
 
-      setTyping(true);
+  try {
+    const res = await fetch("/api/audio-eval", { method: "POST", body: form });
+    const data = await res.json();
 
-      const res = await fetch("/api/audio-eval", { method: "POST", body: form });
-      const data=await res.json();
+    setTyping(false);
 
-     setTyping(false);
+    // Primeiro adiciona áudio do usuário
+    const url = URL.createObjectURL(blob);
+    addAudio(url,"user");
 
-if(data.reply){
-  add(data.reply,"bot");
-  speak(data.reply);
-}
+    // Depois a resposta da Ária
+    if(data.reply){
+      add(data.reply,"bot");
+      speak(data.reply);
     }
+
+  } catch(err){
+    console.error(err);
+    setTyping(false);
+    add("Erro ao enviar áudio","bot");
   }
+}
+}
 }
 let currentMode="professora";
 let deepMode = false;
