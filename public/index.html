@@ -555,73 +555,69 @@ async function speak(text) {
 MIC
 ========================= */
 
-let recorder
-let chunks=[]
-let recording=false
+let recorder;
+let chunks = [];
+let recording = false;
 
-document.getElementById("micBtn").onclick=async()=>{
+document.getElementById("micBtn").onclick = async () => {
 
-if(usage.audio>=limits[plan].audio){
-alert("Limite áudio FREE")
-return
-}
+  if (usage.audio >= limits[plan].audio) {
+    alert("Limite áudio FREE");
+    return;
+  }
 
-if(!recording){
+  if (!recording) {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recorder = new MediaRecorder(stream);
+    recorder.start();
+    recording = true;
+    chunks = [];
 
-const stream=
-await navigator.mediaDevices.getUserMedia({audio:true})
+    recorder.ondataavailable = e => chunks.push(e.data);
 
-recorder=new MediaRecorder(stream)
+  } else {
 
-recorder.start()
-recording=true
-chunks=[]
+    recorder.stop();
+    recording = false;
 
-recorder.ondataavailable=e=>chunks.push(e.data)
+    recorder.onstop = async () => {
+      usage.audio++;
+      updateUsage();
 
-}else{
+      const blob = new Blob(chunks);
 
-recorder.stop()
-recording=false
+      // Mostra áudio do usuário
+      const userAudioEl = document.createElement("audio");
+      userAudioEl.src = URL.createObjectURL(blob);
+      userAudioEl.controls = true;
 
-recorder.onstop = async () => {
-  recording = false;
+      const userDiv = document.createElement("div");
+      userDiv.className = "msg user";
+      userDiv.appendChild(userAudioEl);
 
-  usage.audio++;
-  updateUsage();
+      messages.appendChild(userDiv);
+      messages.scrollTop = messages.scrollHeight;
 
-  const blob = new Blob(chunks);
+      // Envia áudio para o servidor
+      const form = new FormData();
+      form.append("audio", blob);
 
-  // 1️⃣ Mostra áudio do usuário no chat
-  const userAudioEl = document.createElement("audio");
-  userAudioEl.src = URL.createObjectURL(blob);
-  userAudioEl.controls = true;
+      typing.style.display = "block";
 
-  const userDiv = document.createElement("div");
-  userDiv.className = "msg user";
-  userDiv.appendChild(userAudioEl);
+      const res = await fetch("/api/audio-eval", {
+        method: "POST",
+        body: form
+      });
 
-  messages.appendChild(userDiv);
-  messages.scrollTop = messages.scrollHeight;
+      const data = await res.json();
 
-  // 2️⃣ Envia para o servidor
-  const form = new FormData();
-  form.append("audio", blob);
+      typing.style.display = "none";
 
-  typing.style.display = "block";
-
-  const res = await fetch("/api/audio-eval", {
-    method: "POST",
-    body: form
-  });
-
-  const data = await res.json();
-
-  typing.style.display = "none";
-
-  // 3️⃣ Mostra resposta da Ária com áudio
-  addMsg(data.reply, "bot");
-  speak(data.reply);
+      // Mostra resposta da Ária com áudio
+      addMsg(data.reply, "bot");
+      speak(data.reply);
+    };
+  }
 };
 /* =========================
 UPLOAD
