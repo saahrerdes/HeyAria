@@ -566,62 +566,62 @@ document.getElementById("micBtn").onclick = async () => {
   }
 
   if (!recording) {
+    // 🔹 Inicia gravação
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     recorder = new MediaRecorder(stream);
     recorder.start();
     recording = true;
     chunks = [];
+
     recorder.ondataavailable = e => chunks.push(e.data);
 
   } else {
+    // 🔹 Para gravação
     recorder.stop();
     recording = false;
 
     recorder.onstop = async () => {
+      recording = false;
       usage.audio++;
       updateUsage();
 
+      // 1️⃣ Cria blob do áudio
       const blob = new Blob(chunks, { type: "audio/webm" });
 
-// 🔹 Cria elemento de áudio do usuário
-const userAudioEl = document.createElement("audio");
-userAudioEl.src = data.audioUrl; // usa a URL que o backend retornou
-userAudioEl.controls = true;
-userAudioEl.autoplay = false;
-userAudioEl.style.marginTop = "5px";
+      // 2️⃣ Envia áudio para o servidor
+      const form = new FormData();
+      form.append("audio", blob);
 
-const userDiv = document.createElement("div");
-userDiv.className = "msg user";
-userDiv.appendChild(userAudioEl);
+      typing.style.display = "block";
 
-messages.appendChild(userDiv);
-messages.scrollTop = messages.scrollHeight;
-
-// 🔹 Envia áudio para o servidor
-const form = new FormData();
-form.append("audio", blob);
-
-typing.style.display = "block";
-
-      const res = await fetch("/api/audio-eval", {
-        method: "POST",
-        body: form
-      });
-
+      const res = await fetch("/api/audio-eval", { method: "POST", body: form });
       const data = await res.json();
       typing.style.display = "none";
 
-      // 🔹 Mostra resposta da Ária com áudio tipo WhatsApp
+      // 3️⃣ Cria elemento de áudio do usuário
+      const userAudioEl = document.createElement("audio");
+      userAudioEl.src = data.audioUrl; // URL que o backend retornou
+      userAudioEl.controls = true;
+      userAudioEl.autoplay = false;
+      userAudioEl.style.marginTop = "5px";
+
+      const userDiv = document.createElement("div");
+      userDiv.className = "msg user";
+      userDiv.appendChild(userAudioEl);
+      messages.appendChild(userDiv);
+      messages.scrollTop = messages.scrollHeight;
+
+      // 4️⃣ Mostra resposta da Ária com áudio tipo WhatsApp
       const ariaDiv = document.createElement("div");
       ariaDiv.className = "msg bot";
 
       const ariaAudioEl = document.createElement("audio");
-      ariaAudioEl.src = URL.createObjectURL(await (await fetch(`/speak`, {
+      const ariaBlob = await (await fetch(`/speak`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: data.reply })
-      })).blob());
-
+      })).blob();
+      ariaAudioEl.src = URL.createObjectURL(ariaBlob);
       ariaAudioEl.controls = true;
       ariaAudioEl.autoplay = false;
       ariaAudioEl.style.marginTop = "5px";
@@ -630,7 +630,7 @@ typing.style.display = "block";
       messages.appendChild(ariaDiv);
       messages.scrollTop = messages.scrollHeight;
 
-      // 🔹 Mostra texto também
+      // 5️⃣ Mostra texto também
       addMsg(data.reply, "bot");
     };
   }
