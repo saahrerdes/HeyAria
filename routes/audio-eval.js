@@ -126,21 +126,17 @@ Continue a conversa normalmente, incentive o aluno e forneça dicas.
       }
     }
 
-    /* =========================
-       4. RESPOSTA
-    ========================== */
-    res.json({
-      text: transcript,
-      reply
-    });
+   /* =========================
+   4. RESPOSTA
+========================= */
+// 🔹 Retorna URL do áudio para o frontend
+const audioUrl = `/uploads/${req.file.filename}.webm`; // front vai tocar este arquivo
 
-    // Limpeza do arquivo
-    fs.unlinkSync(filePath);
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erro ao avaliar áudio" });
-  }
+res.json({
+  text: transcript,
+  reply,
+  audioUrl
 });
 
-export default router;
+// 🔹 Limpeza do arquivo no servidor (opcional se você quiser manter temporariamente)
+fs.unlinkSync(filePath);

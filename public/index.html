@@ -583,25 +583,25 @@ document.getElementById("micBtn").onclick = async () => {
 
       const blob = new Blob(chunks, { type: "audio/webm" });
 
-      // 🔹 Mostrar áudio do usuário
-      const userAudioEl = document.createElement("audio");
-      userAudioEl.src = URL.createObjectURL(blob);
-      userAudioEl.controls = true;
-      userAudioEl.autoplay = false;  // só inicia quando o usuário clicar
-      userAudioEl.style.marginTop = "5px";
+// 🔹 Cria elemento de áudio do usuário
+const userAudioEl = document.createElement("audio");
+userAudioEl.src = data.audioUrl; // usa a URL que o backend retornou
+userAudioEl.controls = true;
+userAudioEl.autoplay = false;
+userAudioEl.style.marginTop = "5px";
 
-      const userDiv = document.createElement("div");
-      userDiv.className = "msg user";
-      userDiv.appendChild(userAudioEl);
+const userDiv = document.createElement("div");
+userDiv.className = "msg user";
+userDiv.appendChild(userAudioEl);
 
-      messages.appendChild(userDiv);
-      messages.scrollTop = messages.scrollHeight;
+messages.appendChild(userDiv);
+messages.scrollTop = messages.scrollHeight;
 
-      // 🔹 Envia áudio para o servidor
-      const form = new FormData();
-      form.append("audio", blob);
+// 🔹 Envia áudio para o servidor
+const form = new FormData();
+form.append("audio", blob);
 
-      typing.style.display = "block";
+typing.style.display = "block";
 
       const res = await fetch("/api/audio-eval", {
         method: "POST",

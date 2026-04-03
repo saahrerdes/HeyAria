@@ -21,6 +21,9 @@ app.use(express.json());
 app.use("/api", audioEvalRouter);
 app.use(express.static("public"));
 
+// 🔹 Servir arquivos de áudio da pasta uploads
+app.use('/uploads', express.static('uploads'));
+
 /* =========================
 OPENAI
 ========================= */
