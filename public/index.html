@@ -496,16 +496,17 @@ speak(data.reply)
 /* =========================
 MESSAGES
 ========================= */
+function addMsg(text, type) {
+  const div = document.createElement("div");
+  div.className = "msg " + type;
 
-function addMsg(text,type){
+  // Substitui **palavra** por span com classe error-word
+  const html = text.replace(/\*\*(.*?)\*\*/g, '<span class="error-word">$1</span>');
 
-const div=document.createElement("div")
-div.className="msg "+type
-div.innerHTML=text
+  div.innerHTML = html;
 
-messages.appendChild(div)
-messages.scrollTop=messages.scrollHeight
-
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
 }
 
 /* =========================
