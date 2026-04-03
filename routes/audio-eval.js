@@ -138,5 +138,13 @@ res.json({
   audioUrl
 });
 
-// 🔹 Limpeza do arquivo no servidor (opcional se você quiser manter temporariamente)
+// 🔹 Limpeza do arquivo no servidor
 fs.unlinkSync(filePath);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao avaliar áudio" });
+  }
+}); // <-- FECHA router.post
+
+export default router; // <-- FECHA o arquivo
