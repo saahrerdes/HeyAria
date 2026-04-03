@@ -560,7 +560,6 @@ let chunks = [];
 let recording = false;
 
 document.getElementById("micBtn").onclick = async () => {
-
   if (usage.audio >= limits[plan].audio) {
     alert("Limite áudio FREE");
     return;
@@ -572,11 +571,9 @@ document.getElementById("micBtn").onclick = async () => {
     recorder.start();
     recording = true;
     chunks = [];
-
     recorder.ondataavailable = e => chunks.push(e.data);
 
   } else {
-
     recorder.stop();
     recording = false;
 
@@ -584,12 +581,14 @@ document.getElementById("micBtn").onclick = async () => {
       usage.audio++;
       updateUsage();
 
-      const blob = new Blob(chunks);
+      const blob = new Blob(chunks, { type: "audio/webm" });
 
-      // Mostra áudio do usuário
+      // 🔹 Mostrar áudio do usuário
       const userAudioEl = document.createElement("audio");
       userAudioEl.src = URL.createObjectURL(blob);
       userAudioEl.controls = true;
+      userAudioEl.autoplay = false;  // só inicia quando o usuário clicar
+      userAudioEl.style.marginTop = "5px";
 
       const userDiv = document.createElement("div");
       userDiv.className = "msg user";
@@ -598,7 +597,7 @@ document.getElementById("micBtn").onclick = async () => {
       messages.appendChild(userDiv);
       messages.scrollTop = messages.scrollHeight;
 
-      // Envia áudio para o servidor
+      // 🔹 Envia áudio para o servidor
       const form = new FormData();
       form.append("audio", blob);
 
@@ -610,12 +609,29 @@ document.getElementById("micBtn").onclick = async () => {
       });
 
       const data = await res.json();
-
       typing.style.display = "none";
 
-      // Mostra resposta da Ária com áudio
+      // 🔹 Mostra resposta da Ária com áudio tipo WhatsApp
+      const ariaDiv = document.createElement("div");
+      ariaDiv.className = "msg bot";
+
+      const ariaAudioEl = document.createElement("audio");
+      ariaAudioEl.src = URL.createObjectURL(await (await fetch(`/speak`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: data.reply })
+      })).blob());
+
+      ariaAudioEl.controls = true;
+      ariaAudioEl.autoplay = false;
+      ariaAudioEl.style.marginTop = "5px";
+
+      ariaDiv.appendChild(ariaAudioEl);
+      messages.appendChild(ariaDiv);
+      messages.scrollTop = messages.scrollHeight;
+
+      // 🔹 Mostra texto também
       addMsg(data.reply, "bot");
-      speak(data.reply);
     };
   }
 };
