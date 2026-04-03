@@ -519,26 +519,36 @@ function addMsg(text, type) {
 SPEAK
 ========================= */
 
-async function speak(text){
+async function speak(text) {
+  avatar.classList.add("speaking");
 
-avatar.classList.add("speaking")
+  const res = await fetch("/speak", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text })
+  });
 
-const res=await fetch("/speak",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({text})
-})
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
 
-const blob=await res.blob()
-const url=URL.createObjectURL(blob)
+  // Cria um elemento <audio> com controles
+  const audioEl = document.createElement("audio");
+  audioEl.src = url;
+  audioEl.controls = true;       // mostra play, pause, barra de progresso
+  audioEl.autoplay = true;       // opcional: inicia automaticamente
+  audioEl.style.marginTop = "5px";
 
-const audio=new Audio(url)
-audio.play()
+  // Cria um balão separado para o áudio da Ária
+  const div = document.createElement("div");
+  div.className = "msg bot";
+  div.appendChild(audioEl);
 
-audio.onended=()=>{
-avatar.classList.remove("speaking")
-}
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
 
+  audioEl.onended = () => {
+    avatar.classList.remove("speaking");
+  };
 }
 
 /* =========================
@@ -574,36 +584,45 @@ recorder.ondataavailable=e=>chunks.push(e.data)
 recorder.stop()
 recording=false
 
-recorder.onstop=async()=>{
+recorder.onstop = async () => {
+  recording = false;
 
-usage.audio++
-updateUsage()
+  usage.audio++;
+  updateUsage();
 
-const blob=new Blob(chunks)
+  const blob = new Blob(chunks);
 
-const form=new FormData()
-form.append("audio",blob)
+  // 1️⃣ Mostra áudio do usuário no chat
+  const userAudioEl = document.createElement("audio");
+  userAudioEl.src = URL.createObjectURL(blob);
+  userAudioEl.controls = true;
 
-typing.style.display="block"
+  const userDiv = document.createElement("div");
+  userDiv.className = "msg user";
+  userDiv.appendChild(userAudioEl);
 
-const res=await fetch("/api/audio-eval",{
-method:"POST",
-body:form
-})
+  messages.appendChild(userDiv);
+  messages.scrollTop = messages.scrollHeight;
 
-const data=await res.json()
+  // 2️⃣ Envia para o servidor
+  const form = new FormData();
+  form.append("audio", blob);
 
-typing.style.display="none"
+  typing.style.display = "block";
 
-addMsg(data.reply,"bot")
-speak(data.reply)
+  const res = await fetch("/api/audio-eval", {
+    method: "POST",
+    body: form
+  });
 
-}
+  const data = await res.json();
 
-}
+  typing.style.display = "none";
 
-}
-
+  // 3️⃣ Mostra resposta da Ária com áudio
+  addMsg(data.reply, "bot");
+  speak(data.reply);
+};
 /* =========================
 UPLOAD
 ========================= */
