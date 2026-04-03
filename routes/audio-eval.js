@@ -2,17 +2,18 @@
 import multer from "multer";
 import fs from "fs";
 import OpenAI from "openai";
+import crypto from "crypto";
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+/* =========================
+AUDIO EVALUATION ROUTE
+========================= */
 router.post("/audio-eval", upload.single("audio"), async (req, res) => {
   try {
-
     if (!req.file) {
       return res.status(400).json({ error: "Áudio não enviado" });
     }
@@ -21,19 +22,17 @@ router.post("/audio-eval", upload.single("audio"), async (req, res) => {
 
     let filePath = req.file.path;
 
-// Se quiser forçar extensão .webm
-if (!filePath.endsWith(".webm")) {
-  const newPath = req.file.path + ".webm";
-  fs.renameSync(req.file.path, newPath);
-  filePath = newPath;
-}
+    // Garantir extensão .webm
+    if (!filePath.endsWith(".webm")) {
+      const newPath = filePath + ".webm";
+      fs.renameSync(filePath, newPath);
+      filePath = newPath;
+    }
 
     /* =========================
        1. TRANSCRIÇÃO (WHISPER)
     ========================== */
-
     const audioStream = fs.createReadStream(filePath);
-
     const whisper = await openai.audio.transcriptions.create({
       file: audioStream,
       model: "gpt-4o-transcribe"
@@ -42,31 +41,24 @@ if (!filePath.endsWith(".webm")) {
     const transcript = whisper.text;
 
     /* =========================
-       2. IA PROFESSORA ÁRIA
+       2. PROCESSAMENTO ÁRIA
     ========================== */
-
     const prompt = `
-Você é Ária, uma IA professora especialista em pronúncia e fonética.
+Você é Ária, uma IA professora avançada e poliglota. Seu foco principal é corrigir erros de pronúncia, fonética, gramática e vocabulário do aluno, sempre de forma paciente, gentil e clara.
 
 REGRAS IMPORTANTES:
-
-- Destacar APENAS a palavra errada com ** **
-- Nunca destacar a frase inteira
-- Apenas a palavra incorreta deve ficar entre ** **
-- Não escrever instruções de voz
-- Corrigir naturalmente
-- Sempre incluir tradução
-- Sempre incluir fonética
-- Sempre continuar conversa natural
-
-IMPORTANTE:
-Quando houver erro de PRONÚNCIA você deve:
-
-1 mostrar palavra corrigida  
-2 mostrar pronúncia lenta (bem devagar)  
-3 mostrar pronúncia natural  
-4 mostrar IPA  
-5 sugerir treino adequado  
+- Destacar APENAS a palavra incorreta com ** **.
+- Não colocar a frase inteira em destaque.
+- Nunca incluir as instruções de voz no texto enviado ao usuário.
+- Sempre fornecer:
+  1) Frase corrigida
+  2) Tradução
+  3) Pronúncia lenta
+  4) Pronúncia natural
+  5) IPA (se aplicável)
+- Se houver erro de pronúncia, sugerir treino adequado:
+  • Shadowing, Speaking drill ou Repetição lenta
+- Sempre continuar a conversa normalmente.
 
 Idioma nativo do aluno: ${nativeLang}
 Idioma que ele está aprendendo: ${learningLang}
@@ -74,8 +66,7 @@ Idioma que ele está aprendendo: ${learningLang}
 Aluno disse:
 "${transcript}"
 
-Formato quando houver erro:
-
+Formato de resposta esperado:
 Você disse:
 (frase com **erro**)
 
@@ -97,23 +88,11 @@ Pronúncia natural:
 IPA:
 (palavra → IPA)
 
-Se for erro de PRONÚNCIA adicionar:
-
-Treino recomendado:
-
-Se dificuldade em ritmo:
-• Shadowing — repetir junto com a Ária
-
-Se dificuldade em falar:
-• Speaking drill — repetir várias vezes
-
-Se palavra difícil:
-• Repetição lenta — falar devagar primeiro
-
-Depois continue a conversa normalmente.
+Treino recomendado (se erro de pronúncia):
+• Shadowing, Speaking drill ou Repetição lenta
 
 Se não houver erro:
-Continue a conversa normalmente e incentive o aluno.
+Continue a conversa normalmente, incentive o aluno e forneça dicas.
 `;
 
     const completion = await openai.chat.completions.create({
@@ -122,7 +101,7 @@ Continue a conversa normalmente e incentive o aluno.
       messages: [
         {
           role: "system",
-          content: "Você é uma professora poliglota especialista em fonética e pronúncia."
+          content: "Você é uma professora poliglota especialista em fonética, pronúncia e ensino de idiomas."
         },
         {
           role: "user",
@@ -134,14 +113,28 @@ Continue a conversa normalmente e incentive o aluno.
     const reply = completion.choices[0].message.content;
 
     /* =========================
-       3. RESPOSTA
+       3. ATUALIZA PERFORMANCE DO USUÁRIO
     ========================== */
+    // Presume-se que o server exporta `users` para atualizar performance
+    if (global.users && userId && global.users[userId]) {
+      const user = global.users[userId];
+      if (reply.includes("**")) {
+        user.performance.erros++;
+        user.userErrors.push(transcript);
+      } else {
+        user.performance.acertos++;
+      }
+    }
 
+    /* =========================
+       4. RESPOSTA
+    ========================== */
     res.json({
       text: transcript,
       reply
     });
 
+    // Limpeza do arquivo
     fs.unlinkSync(filePath);
 
   } catch (err) {

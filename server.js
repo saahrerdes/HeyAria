@@ -19,112 +19,7 @@ MIDDLEWARES
 app.use(cors());
 app.use(express.json());
 app.use("/api", audioEvalRouter);
-/* =========================
-UPLOAD DE ARQUIVO
-========================= */
-
-app.post("/api/upload-file", upload.single("file"), async (req, res) => {
-  try {
-
-    if (!req.file) {
-      return res.json({ success: false });
-    }
-
-    const fileName = req.file.originalname;
-
-    res.json({
-      success: true,
-      reply: `Recebi seu arquivo "${fileName}". Posso analisar ele para você.`
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false });
-  }
-});
 app.use(express.static("public"));
-
-/* =========================
-NOVAS ROTAS (PASSO 3)
-========================= */
-// Ler conteúdo do arquivo enviado
-app.post("/api/read-file", upload.single("file"), async (req,res)=>{
-
-  try{
-
-    if(!req.file){
-      return res.status(400).json({error:"Arquivo não enviado"});
-    }
-
-    const filePath = req.file.path;
-
-    // lê conteúdo do arquivo
-    const content = fs.readFileSync(filePath,"utf-8");
-
-    const completion = await openai.chat.completions.create({
-      model:"gpt-4.1-mini",
-      messages:[
-        {
-          role:"system",
-          content:"Você é Ária. Leia o conteúdo enviado e explique para o aluno de forma clara."
-        },
-        {
-          role:"user",
-          content:content
-        }
-      ]
-    });
-
-    const reply = completion.choices[0].message.content;
-
-    res.json({ reply });
-
-    fs.unlinkSync(filePath);
-
-  }catch(err){
-    console.error(err);
-    res.status(500).json({error:"erro ler arquivo"});
-  }
-
-});
-// Upload de arquivo
-app.post("/api/upload-file", upload.single("file"), async (req,res)=>{
-  if(!req.file) return res.status(400).json({error:"Arquivo não enviado"});
-  res.json({ success:true, name:req.file.originalname, path:req.file.path, reply:"Arquivo recebido!" });
-});
-
-// Análise profunda de texto
-app.post("/api/deep-analyze", async (req,res)=>{
-  const { message } = req.body;
-  const completion = await openai.chat.completions.create({
-    model:"gpt-4.1-mini",
-    messages:[{ role:"user", content: message }]
-  });
-  const reply = completion.choices[0].message.content;
-  res.json({ reply });
-});
-
-// Gerar imagem
-app.post("/api/generate-image", async (req,res)=>{
-  const { prompt } = req.body;
-  const image = await openai.images.generate({
-    model:"gpt-image-1",
-    prompt,
-    size:"1024x1024"
-  });
-  const url = image.data[0].url;
-  res.json({ url });
-});
-
-/* =========================
-ROTAS EXISTENTES
-========================= */
-app.get("/", (req,res)=> res.send("HeyAria online"));
-
-app.post("/chat", async (req,res)=>{ /* ... sua lógica atual ... */ });
-app.post("/speak", async (req,res)=>{ /* ... */ });
-app.post("/upgrade", async (req,res)=>{ /* ... */ });
-app.post("/create-checkout-session", async (req,res)=>{ /* ... */ });
 
 /* =========================
 OPENAI
@@ -144,23 +39,19 @@ if (!process.env.STRIPE_KEY) {
 }
 const stripe = new Stripe(process.env.STRIPE_KEY, { apiVersion: "2022-11-15" });
 
-
 /* =========================
-MEMÓRIA
+MEMÓRIA DO USUÁRIO
 ========================= */
 const conversations = {};
 const users = {};
 const userMode = {};
 
-/* =========================
-USER
-========================= */
 function generateUserId() {
   return crypto.randomBytes(16).toString("hex");
 }
 
-function createUser(userId){
-  if(!users[userId]){
+function createUser(userId) {
+  if (!users[userId]) {
     users[userId] = {
       plan: "free",
       messagesToday: 0,
@@ -168,14 +59,14 @@ function createUser(userId){
       userErrors: [],
       performance: { nivel: "iniciante", acertos: 0, erros: 0 },
       objective: "aprendizado geral",
-      introduced:false
+      introduced: false
     };
   }
 }
 
-function resetDaily(user){
+function resetDaily(user) {
   const today = new Date().toDateString();
-  if(user.lastReset !== today){
+  if (user.lastReset !== today) {
     user.messagesToday = 0;
     user.lastReset = today;
   }
@@ -242,49 +133,114 @@ REGRAS IMPORTANTES:
 `;
 
 /* =========================
-ROTAS
+ROTAS DE TESTE
 ========================= */
-
-app.get("/", (req,res)=> res.send("HeyAria online"));
+app.get("/", (req, res) => res.send("HeyAria online"));
 
 /* =========================
-CHAT
+UPLOAD E LEITURA DE ARQUIVO
 ========================= */
-app.post("/chat", async (req,res)=>{
-  try{
+app.post("/api/upload-file", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "Arquivo não enviado" });
+    res.json({
+      success: true,
+      name: req.file.originalname,
+      path: req.file.path,
+      reply: `Recebi seu arquivo "${req.file.originalname}". Posso analisar ele para você.`
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro no upload de arquivo" });
+  }
+});
 
-    const {message, userId, nativeLang, learningLang, objective} = req.body;
-let deepMode = false;
+app.post("/api/read-file", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "Arquivo não enviado" });
 
-if(message.startsWith("INVESTIGUE PROFUNDAMENTE")){
-  deepMode = true;
-}
+    const content = fs.readFileSync(req.file.path, "utf-8");
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [
+        { role: "system", content: "Você é Ária. Leia o conteúdo enviado e explique para o aluno de forma clara." },
+        { role: "user", content: content }
+      ]
+    });
+
+    const reply = completion.choices[0].message.content;
+
+    fs.unlinkSync(req.file.path);
+
+    res.json({ reply });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao ler arquivo" });
+  }
+});
+
+/* =========================
+ANÁLISE PROFUNDA DE TEXTO
+========================= */
+app.post("/api/deep-analyze", async (req, res) => {
+  try {
+    const { message } = req.body;
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [{ role: "user", content: message }]
+    });
+    res.json({ reply: completion.choices[0].message.content });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro análise profunda" });
+  }
+});
+
+/* =========================
+GERAÇÃO DE IMAGEM
+========================= */
+app.post("/api/generate-image", async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    const image = await openai.images.generate({
+      model: "gpt-image-1",
+      prompt,
+      size: "1024x1024"
+    });
+    res.json({ url: image.data[0].url });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro gerar imagem" });
+  }
+});
+
+/* =========================
+CHAT PRINCIPAL
+========================= */
+app.post("/chat", async (req, res) => {
+  try {
+    const { message, userId, nativeLang, learningLang, objective } = req.body;
+    let deepMode = message.startsWith("INVESTIGUE PROFUNDAMENTE");
 
     createUser(userId);
     const user = users[userId];
-
     user.objective = objective || user.objective;
     resetDaily(user);
 
-    /* INTRODUÇÃO AUTOMÁTICA */
-    if(!user.introduced){
+    if (!user.introduced) {
       user.introduced = true;
-
-      conversations[userId] = [
-        {
-          role:"system",
-          content:`
-${SYSTEM_PROMPT}
-
+      conversations[userId] = [{
+        role: "system",
+        content: `${SYSTEM_PROMPT}
 Idioma materno do usuário: ${nativeLang}
 Idioma que quer aprender: ${learningLang}
-Objetivo: ${user.objective}
-`
-        }
-      ];
+Objetivo: ${user.objective}`
+      }];
 
       return res.json({
-        reply:`Olá! Eu sou Ária 🌍  
+        reply: `Olá! Eu sou Ária 🌍  
 Sou uma inteligência artificial poliglota e também sua professora.
 
 Posso falar mais de 50 idiomas.
@@ -296,170 +252,124 @@ Vou te ajudar principalmente com:
 • Gramática  
 
 Primeiro me diga:
-
 Qual idioma você quer aprender?`
       });
     }
 
     /* MODOS */
-    if(message==="professora"){
-      userMode[userId]="professora";
-      return res.json({
-        reply:"Modo professora ativado. Vou corrigir pronúncia, fonética, gramática e continuar conversando naturalmente."
-      });
-    }
-
-    if(message==="casual"){
-      userMode[userId]="casual";
-      return res.json({
-        reply:"Modo casual ativado. Vamos conversar normalmente."
-      });
-    }
+    if (message === "professora") { userMode[userId] = "professora"; return res.json({ reply: "Modo professora ativado. Vou corrigir pronúncia, fonética, gramática e continuar conversando naturalmente." }); }
+    if (message === "casual") { userMode[userId] = "casual"; return res.json({ reply: "Modo casual ativado. Vamos conversar normalmente." }); }
 
     /* LIMITE FREE */
-    if(user.plan==="free"){
-      if(user.messagesToday >= 50){
-        return res.json({
-          reply:"Você atingiu o limite do plano Free. Torne-se Pro para mensagens ilimitadas e áudio avançado."
-        });
-      }
-      user.messagesToday++;
+    if (user.plan === "free" && user.messagesToday >= 50) {
+      return res.json({ reply: "Você atingiu o limite do plano Free. Torne-se Pro para mensagens ilimitadas e áudio avançado." });
     }
+    user.messagesToday++;
 
-    conversations[userId].push({
-      role:"user",
-      content:message
-    });
+    conversations[userId].push({ role: "user", content: message });
 
     const completion = await openai.chat.completions.create({
-      model:"gpt-4.1-mini",
+      model: "gpt-4.1-mini",
       messages: [
-  {
-    role:"system",
-    content: deepMode
-      ? "Você está no modo investigação profunda. Analise detalhadamente, quebre em partes, explique passo a passo, forneça conclusão, exemplos e seja extremamente detalhada."
-      : SYSTEM_PROMPT
-  },
-  ...conversations[userId]
-],
-      temperature:0.7
+        { role: "system", content: deepMode ? "Você está no modo investigação profunda. Analise detalhadamente, quebre em partes, explique passo a passo, forneça conclusão, exemplos e seja extremamente detalhada." : SYSTEM_PROMPT },
+        ...conversations[userId]
+      ],
+      temperature: 0.7
     });
 
     const reply = completion.choices[0].message.content;
 
-    conversations[userId].push({
-      role:"assistant",
-      content:reply
-    });
+    conversations[userId].push({ role: "assistant", content: reply });
+    if (reply.includes("**")) user.performance.erros++; else user.performance.acertos++;
 
-    if(reply.includes("**"))
-      user.performance.erros++;
-    else
-      user.performance.acertos++;
+    res.json({ reply, performance: user.performance });
 
-    res.json({
-      reply,
-      performance:user.performance
-    });
-
-  }catch(err){
+  } catch (err) {
     console.error(err);
-    res.status(500).json({error:"erro chat"});
+    res.status(500).json({ error: "Erro chat" });
   }
 });
-
 
 /* =========================
 VOZ
 ========================= */
-app.post("/speak", async (req,res)=>{
-  try{
-
+app.post("/speak", async (req, res) => {
+  try {
     const { text } = req.body;
 
     const mp3 = await openai.audio.speech.create({
-      model:"gpt-4o-mini-tts",
-      voice:"nova",
-      input: `
-Fale de forma gentil, suave e feminina.
+      model: "gpt-4o-mini-tts",
+      voice: "nova",
+      input: `Fale de forma gentil, suave e feminina.
 Tom de professora paciente e acolhedora.
 Velocidade levemente mais lenta.
 Entonação natural e amigável.
 
 Texto:
-${text}
-`
+${text}`
     });
 
     const buffer = Buffer.from(await mp3.arrayBuffer());
 
-    res.writeHead(200,{
-      "Content-Type":"audio/mpeg",
-      "Content-Length":buffer.length,
-      "Cache-Control":"no-cache"
+    res.writeHead(200, {
+      "Content-Type": "audio/mpeg",
+      "Content-Length": buffer.length,
+      "Cache-Control": "no-cache"
     });
-
     res.end(buffer);
 
-  }catch(e){
+  } catch (e) {
     console.error(e);
-    res.status(500).json({error:"erro voz"});
+    res.status(500).json({ error: "Erro voz" });
   }
 });
+
 /* =========================
 UPGRADE PRO
 ========================= */
-app.post("/upgrade", async (req,res)=>{
-  try{
-
+app.post("/upgrade", async (req, res) => {
+  try {
     const { userId, paymentSuccess } = req.body;
-
-    if(paymentSuccess && users[userId]){
+    if (paymentSuccess && users[userId]) {
       users[userId].plan = "pro";
       users[userId].messagesToday = 0;
-
-      res.json({
-        success:true,
-        message:"Plano Pro ativado!"
-      });
-
-    }else{
-      res.json({success:false});
+      res.json({ success: true, message: "Plano Pro ativado!" });
+    } else {
+      res.json({ success: false });
     }
-
-  }catch(e){
+  } catch (e) {
     console.error(e);
-    res.status(500).json({error:"erro upgrade"});
+    res.status(500).json({ error: "Erro upgrade" });
   }
 });
 
 /* =========================
-STRIPE
+STRIPE CHECKOUT
 ========================= */
-app.post("/create-checkout-session", async (req,res)=>{
-
-  const session = await stripe.checkout.sessions.create({
-    line_items:[{
-      price_data:{
-        currency:'brl',
-        product_data:{ name:'Ária Pro' },
-        unit_amount:1900
-      },
-      quantity:1
-    }],
-    mode:'payment',
-    success_url:`${req.headers.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url:`${req.headers.origin}/?canceled=true`
-  });
-
-  res.json({ url: session.url });
+app.post("/create-checkout-session", async (req, res) => {
+  try {
+    const session = await stripe.checkout.sessions.create({
+      line_items: [{
+        price_data: {
+          currency: 'brl',
+          product_data: { name: 'Ária Pro' },
+          unit_amount: 1900
+        },
+        quantity: 1
+      }],
+      mode: 'payment',
+      success_url: `${req.headers.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.origin}/?canceled=true`
+    });
+    res.json({ url: session.url });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Erro criar checkout" });
+  }
 });
 
 /* =========================
-START
+INÍCIO DO SERVIDOR
 ========================= */
 const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log("HeyAria online na porta " + PORT);
-});
+app.listen(PORT, () => console.log("HeyAria online na porta " + PORT));
