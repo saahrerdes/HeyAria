@@ -143,7 +143,7 @@ res.json({
 } catch (err) {
   console.error(err);
   res.status(500).json({ error: "Erro ao avaliar áudio" });
+}
 });
 
 export default router;
-  
