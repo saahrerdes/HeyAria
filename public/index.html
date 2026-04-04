@@ -532,11 +532,18 @@ async function speak(text) {
   const url = URL.createObjectURL(blob);
 
   // Cria um elemento <audio> com controles
-  const audioEl = document.createElement("audio");
-  audioEl.src = url;
-  audioEl.controls = true;       // mostra play, pause, barra de progresso
-  audioEl.autoplay = true;       // opcional: inicia automaticamente
-  audioEl.style.marginTop = "5px";
+  const userAudioEl = document.createElement("audio");
+
+  userAudioEl.controls = true;
+  userAudioEl.autoplay = false;
+  userAudioEl.preload = "auto";
+
+  userAudioEl.src = data.audioUrl;
+
+  userAudioEl.load();
+
+  userAudioEl.style.marginTop = "5px";
+  
 
   // Cria um balão separado para o áudio da Ária
   const div = document.createElement("div");
