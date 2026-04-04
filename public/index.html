@@ -601,6 +601,7 @@ document.getElementById("micBtn").onclick = async () => {
       // 3️⃣ Cria elemento de áudio do usuário
       const userAudioEl = document.createElement("audio");
       userAudioEl.src = window.location.origin + data.audioUrl;
+      userAudioEl.type = "audio/webm";
       userAudioEl.controls = true;
       userAudioEl.autoplay = false;
       userAudioEl.style.marginTop = "5px";
@@ -616,6 +617,7 @@ document.getElementById("micBtn").onclick = async () => {
       ariaDiv.className = "msg bot";
 
       const ariaAudioEl = document.createElement("audio");
+      ariaAudioEl.type = "audio/mpeg";
       const ariaBlob = await (await fetch(`/speak`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
