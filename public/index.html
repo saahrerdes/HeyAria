@@ -590,7 +590,7 @@ document.getElementById("micBtn").onclick = async () => {
 
       // 2️⃣ Envia áudio para o servidor
       const form = new FormData();
-      form.append("audio", blob);
+      form.append("audio", blob, "gravacao.webm");
 
       typing.style.display = "block";
 
