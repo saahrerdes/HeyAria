@@ -141,16 +141,4 @@ res.json({
   audioUrl
 });
 
-// 🔹 remove depois de 1 minuto (não antes!)
-setTimeout(() => {
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
-  }
-}, 60000);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erro ao avaliar áudio" });
-  }
-}); // <-- FECHA router.post
-
-export default router; // <-- FECHA o arquivo
+  
