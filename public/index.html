@@ -600,7 +600,7 @@ document.getElementById("micBtn").onclick = async () => {
 
       // 3️⃣ Cria elemento de áudio do usuário
       const userAudioEl = document.createElement("audio");
-      userAudioEl.src = data.audioUrl; // URL que o backend retornou
+      userAudioEl.src = window.location.origin + data.audioUrl;
       userAudioEl.controls = true;
       userAudioEl.autoplay = false;
       userAudioEl.style.marginTop = "5px";

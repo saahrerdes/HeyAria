@@ -129,8 +129,11 @@ Continue a conversa normalmente, incentive o aluno e forneça dicas.
    /* =========================
    4. RESPOSTA
 ========================= */
-// 🔹 Retorna URL do áudio para o frontend
-const audioUrl = `/uploads/${req.file.filename}.webm`; // front vai tocar este arquivo
+// 🔹 pega nome real do arquivo com extensão
+const savedFilename = filePath.split("/").pop();
+
+// 🔹 URL pública
+const audioUrl = `/uploads/${savedFilename}`;
 
 res.json({
   text: transcript,
@@ -138,9 +141,12 @@ res.json({
   audioUrl
 });
 
-// 🔹 Limpeza do arquivo no servidor
-fs.unlinkSync(filePath);
-
+// 🔹 remove depois de 1 minuto (não antes!)
+setTimeout(() => {
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
+}, 60000);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erro ao avaliar áudio" });
