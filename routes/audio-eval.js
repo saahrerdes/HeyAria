@@ -132,7 +132,6 @@ Continue a conversa normalmente, incentive o aluno e forneça dicas.
 // 🔹 pega nome real do arquivo com extensão
 const savedFilename = filePath.split("/").pop();
 
-// 🔹 URL pública
 const audioUrl = `/uploads/${savedFilename}`;
 
 res.json({
@@ -141,4 +140,10 @@ res.json({
   audioUrl
 });
 
+} catch (err) {
+  console.error(err);
+  res.status(500).json({ error: "Erro ao avaliar áudio" });
+});
+
+export default router;
   
