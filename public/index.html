@@ -531,29 +531,23 @@ async function speak(text) {
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
 
-  // Cria um elemento <audio> com controles
-  const userAudioEl = document.createElement("audio");
+  // cria audio da aria
+  const audioEl = document.createElement("audio");
+  audioEl.controls = true;
+  audioEl.autoplay = false;
+  audioEl.preload = "auto";
+  audioEl.src = url;
 
-  userAudioEl.controls = true;
-  userAudioEl.autoplay = false;
-  userAudioEl.preload = "auto";
-
-  userAudioEl.src = data.audioUrl;
-
-  userAudioEl.load();
-
-  userAudioEl.style.marginTop = "5px";
-
-  userDiv.appendChild(userAudioEl);
-  
-
-  // Cria um balão separado para o áudio da Ária
+  // cria balão da aria
   const div = document.createElement("div");
   div.className = "msg bot";
+
   div.appendChild(audioEl);
 
   messages.appendChild(div);
   messages.scrollTop = messages.scrollHeight;
+
+  audioEl.play();
 
   audioEl.onended = () => {
     avatar.classList.remove("speaking");
