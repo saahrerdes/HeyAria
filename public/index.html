@@ -603,10 +603,10 @@ document.getElementById("micBtn").onclick = async () => {
 
       // 3️⃣ Cria elemento de áudio do usuário
       const userAudioEl = document.createElement("audio");
-      userAudioEl.src = window.location.origin + data.audioUrl;
-      userAudioEl.type = "audio/webm";
+      userAudioEl.src = data.audioUrl; // ← CORREÇÃO AQUI
       userAudioEl.controls = true;
       userAudioEl.autoplay = false;
+      userAudioEl.preload = "auto";
       userAudioEl.style.marginTop = "5px";
 
       const userDiv = document.createElement("div");
@@ -619,24 +619,7 @@ document.getElementById("micBtn").onclick = async () => {
       const ariaDiv = document.createElement("div");
       ariaDiv.className = "msg bot";
 
-      const ariaAudioEl = document.createElement("audio");
-      ariaAudioEl.type = "audio/mpeg";
-      const ariaBlob = await (await fetch(`/speak`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: data.reply })
-      })).blob();
-      ariaAudioEl.src = URL.createObjectURL(ariaBlob);
-      ariaAudioEl.controls = true;
-      ariaAudioEl.autoplay = false;
-      ariaAudioEl.style.marginTop = "5px";
-
-      ariaDiv.appendChild(ariaAudioEl);
-      messages.appendChild(ariaDiv);
-      messages.scrollTop = messages.scrollHeight;
-
-      // 5️⃣ Mostra texto também
-      addMsg(data.reply, "bot");
+      const ariaAudioEl = document
     };
   }
 };
