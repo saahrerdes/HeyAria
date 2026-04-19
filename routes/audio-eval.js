@@ -3,6 +3,10 @@ import multer from "multer";
 import fs from "fs";
 import OpenAI from "openai";
 import crypto from "crypto";
+import ffmpeg from "fluent-ffmpeg";
+import ffmpegPath from "ffmpeg-static";
+
+ffmpeg.setFfmpegPath(ffmpegPath);
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
@@ -21,13 +25,18 @@ router.post("/audio-eval", upload.single("audio"), async (req, res) => {
     const { userId, nativeLang, learningLang } = req.body;
 
     let filePath = req.file.path;
+    // converter para mp3
+    const convertedPath = filePath + ".mp3";
 
-    // Garantir extensão .webm
-    if (!filePath.endsWith(".webm")) {
-      const newPath = filePath + ".webm";
-      fs.renameSync(filePath, newPath);
-      filePath = newPath;
-    }
+    await new Promise((resolve, reject) => {
+    ffmpeg(filePath)
+    .toFormat("mp3")
+    .on("end", resolve)
+    .on("error", reject)
+    .save(convertedPath);
+});
+
+filePath = convertedPath;
 
     /* =========================
        1. TRANSCRIÇÃO (WHISPER)
