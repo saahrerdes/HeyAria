@@ -393,6 +393,24 @@ audio{
 margin-top:8px;
 width:100%;
 }
+.audio-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.msg.user .audio-btn {
+  background: #2563eb;
+}
+
+.msg.bot .audio-btn {
+  background: #10b981;
+}
 
 </style>
 
@@ -409,6 +427,64 @@ width:100%;
 
 let mode="teacher"
 let plan="free"
+let currentAudio = null;
+function createAudioBubble(url, type) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "msg " + type;
+
+  const btn = document.createElement("button");
+  btn.innerText = "▶";
+  btn.className = "audio-btn";
+
+  const audio = new Audio(url);
+  audio.preload = "auto";
+
+  let playing = false;
+
+  btn.onclick = () => {
+    if (currentAudio && currentAudio !== audio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }
+
+    if (!playing) {
+      audio.play();
+      btn.innerText = "⏸";
+      currentAudio = audio;
+    } else {
+      audio.pause();
+      btn.innerText = "▶";
+      currentAudio = null;
+    }
+
+    playing = !playing;
+  };
+
+  audio.onended = () => {
+    playing = false;
+    btn.innerText = "▶";
+    currentAudio = null;
+  };
+
+  wrapper.appendChild(btn);
+  return wrapper;
+}
+
+function registerAudio(audio) {
+  if (currentAudio && currentAudio !== audio) {
+    currentAudio.pause();
+  }
+
+  currentAudio = audio;
+
+  audio.onplay = () => {
+    if (currentAudio && currentAudio !== audio) {
+      currentAudio.pause();
+    }
+    currentAudio = audio;
+  };
+}
+
 
 let usage={
 messages:0,
@@ -520,8 +596,6 @@ SPEAK
 ========================= */
 
 async function speak(text) {
-  avatar.classList.add("speaking");
-
   const res = await fetch("/speak", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -531,29 +605,9 @@ async function speak(text) {
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
 
-  // cria audio da aria
-  const audioEl = document.createElement("audio");
-  audioEl.controls = true;
-  audioEl.autoplay = false;
-  audioEl.preload = "auto";
-  audioEl.src = url;
-
-  // cria balão da aria
-  const div = document.createElement("div");
-  div.className = "msg bot";
-
-  div.appendChild(audioEl);
-
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
-
-  audioEl.play();
-
-  audioEl.onended = () => {
-    avatar.classList.remove("speaking");
-  };
+  // 🔥 SÓ DEVOLVE O ÁUDIO
+  return url;
 }
-
 /* =========================
 MIC
 ========================= */
@@ -569,60 +623,59 @@ document.getElementById("micBtn").onclick = async () => {
   }
 
   if (!recording) {
-    // 🔹 Inicia gravação
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
     recorder = new MediaRecorder(stream);
     recorder.start();
+
     recording = true;
     chunks = [];
 
     recorder.ondataavailable = e => chunks.push(e.data);
 
   } else {
-    // 🔹 Para gravação
     recorder.stop();
     recording = false;
 
-    recorder.onstop = async () => {
-      recording = false;
-      usage.audio++;
-      updateUsage();
+    const blob = new Blob(chunks, { type: "audio/webm" });
 
-      // 1️⃣ Cria blob do áudio
-      const blob = new Blob(chunks, { type: "audio/webm" });
+    const form = new FormData();
+    form.append("audio", blob, "gravacao.webm");
+    form.append("userId", getOrCreateUserId());
 
-      // 2️⃣ Envia áudio para o servidor
-      const form = new FormData();
-      form.append("audio", blob, "gravacao.webm");
+    typing.style.display = "block";
 
-      typing.style.display = "block";
+    const res = await fetch("/api/audio-eval", {
+      method: "POST",
+      body: form
+    });
 
-      const res = await fetch("/api/audio-eval", { method: "POST", body: form });
-      const data = await res.json();
-      typing.style.display = "none";
+    const data = await res.json();
 
-      // 3️⃣ Cria elemento de áudio do usuário
-      const userAudioEl = document.createElement("audio");
-      userAudioEl.src = data.audioUrl; // ← CORREÇÃO AQUI
-      userAudioEl.controls = true;
-      userAudioEl.autoplay = false;
-      userAudioEl.preload = "auto";
-      userAudioEl.style.marginTop = "5px";
+    typing.style.display = "none";
 
-      const userDiv = document.createElement("div");
-      userDiv.className = "msg user";
-      userDiv.appendChild(userAudioEl);
-      messages.appendChild(userDiv);
-      messages.scrollTop = messages.scrollHeight;
+    // =========================
+    // ÁUDIO DO USUÁRIO (WHATSAPP)
+    // =========================
+    const userBubble = createAudioBubble(data.audioUrl, "user");
+    messages.appendChild(userBubble);
 
-      // 4️⃣ Mostra resposta da Ária com áudio tipo WhatsApp
-      const ariaDiv = document.createElement("div");
-      ariaDiv.className = "msg bot";
+    // =========================
+    // TEXTO ÁRIA
+    // =========================
+    addMsg(data.reply, "bot");
 
-      const ariaAudioEl = document
-    };
+    // =========================
+    // ÁUDIO ÁRIA (WHATSAPP STYLE)
+    // =========================
+    const url = await speak(data.reply);
+const bubble = createAudioBubble(url, "bot");
+messages.appendChild(bubble);
+
+    messages.scrollTop = messages.scrollHeight;
   }
 };
+  
 /* =========================
 UPLOAD
 ========================= */
@@ -708,6 +761,13 @@ window.location.href=data.url
 }
 
 updateUsage()
+
+document.addEventListener("play", function(e) {
+  const audios = document.querySelectorAll("audio");
+  audios.forEach(a => {
+    if (a !== e.target) a.pause();
+  });
+}, true);
 
 </script>
 
