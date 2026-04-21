@@ -1,28 +1,53 @@
-﻿```html
-<!-- ============================= -->
-<!-- INICIO PARTE 1 -->
-<!-- ============================= -->
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Ária AI</title>
 
 <link rel="stylesheet" href="style.css">
 
+<style>
+
+/* (SEU CSS ORIGINAL MANTIDO) */
+
+.audio-wrapper{
+display:flex;
+align-items:center;
+gap:10px;
+margin-top:6px;
+}
+
+.audio-bar{
+flex:1;
+height:6px;
+background:#e5e7eb;
+border-radius:10px;
+overflow:hidden;
+}
+
+.audio-progress{
+height:100%;
+width:0%;
+background:#2563eb;
+}
+
+.time{
+font-size:11px;
+color:#6b7280;
+min-width:40px;
+text-align:right;
+}
+
+</style>
 </head>
 
 <body>
 
 <div class="app">
 
-<!-- ========================= -->
-<!-- SIDEBAR -->
-<!-- ========================= -->
+<!-- SIDEBAR (SEM ALTERAÇÃO) -->
 <div class="sidebar">
-
 <div class="logo">
 <img src="/images/aria.png" class="logo-avatar">
 <span>Ária</span>
@@ -36,24 +61,19 @@
 </button>
 </div>
 
-<!-- MODOS -->
 <div class="side-section">
-
 <h3>Modo</h3>
 
-<button class="side-btn active" onclick="setMode('teacher')">
+<button class="side-btn active" onclick="setMode(event,'teacher')">
 👩‍🏫 Professora
 </button>
 
-<button class="side-btn" onclick="setMode('casual')">
+<button class="side-btn" onclick="setMode(event,'casual')">
 💬 Casual
 </button>
-
 </div>
 
-<!-- FUNCIONALIDADES -->
 <div class="side-section">
-
 <h3>Ferramentas</h3>
 
 <button class="side-btn" onclick="deepMode()">
@@ -67,713 +87,385 @@
 <button class="side-btn" onclick="newChat()">
 🆕 Nova conversa
 </button>
-
+</div>
 </div>
 
-</div>
-
-<!-- ========================= -->
 <!-- CHAT -->
-<!-- ========================= -->
 <div class="chat">
 
-<!-- HEADER -->
 <div class="chat-header">
-
 <img src="/images/aria.png" class="avatar" id="avatar">
 
 <div class="chat-info">
 <div class="name">Ária</div>
-<div class="status" id="status">
-IA professora poliglota
+<div class="status" id="status">IA professora poliglota</div>
 </div>
 </div>
 
-</div>
-
-<!-- MENSAGENS -->
 <div class="messages" id="messages"></div>
+<div class="typing" id="typing">Ária está digitando...</div>
 
-<!-- DIGITANDO -->
-<div class="typing" id="typing">
-Ária está digitando...
-</div>
-
-<!-- INPUT -->
 <div class="input-area">
 
-<button id="uploadBtn" class="tool-btn">
-📎
-</button>
+<button id="uploadBtn" class="tool-btn">📎</button>
 
-<input 
-type="text" 
-id="textInput"
-placeholder="Fale com a Ária..."
->
+<input type="text" id="textInput" placeholder="Fale com a Ária...">
 
-<button id="micBtn" class="mic-btn">
-🎤
-</button>
+<button id="micBtn" class="mic-btn">🎤</button>
 
-<button id="sendBtn" class="send-btn">
-Enviar
-</button>
+<button id="sendBtn" class="send-btn">Enviar</button>
 
 </div>
 
 <input type="file" id="fileInput" hidden>
-
+</div>
 </div>
 
-</div>
-
-<!-- ========================= -->
-<!-- PAINEL ERROS -->
-<!-- ========================= -->
+<!-- ERROS -->
 <div id="errorsPanel" class="errors-panel hidden">
 <h3>Dicionário de erros</h3>
 <div id="errorsList"></div>
 </div>
 
-<!-- ========================= -->
-<!-- AUDIO PLAYER -->
-<!-- ========================= -->
-<audio id="audioPlayer"></audio>
-
-<!-- ============================= -->
-<!-- FIM PARTE 1 -->
-<!-- ============================= -->
-```
-```html
-<!-- ============================= -->
-<!-- INICIO PARTE 2 -->
-<!-- ============================= -->
-
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-}
-
-body{
-background:#f5f6fa;
-height:100vh;
-overflow:hidden;
-}
-
-.app{
-display:flex;
-height:100vh;
-}
-
-/* SIDEBAR */
-
-.sidebar{
-width:260px;
-background:white;
-border-right:1px solid #e5e7eb;
-display:flex;
-flex-direction:column;
-padding:16px;
-gap:16px;
-}
-
-.logo{
-display:flex;
-align-items:center;
-gap:10px;
-font-size:18px;
-font-weight:700;
-}
-
-.logo-avatar{
-width:34px;
-height:34px;
-border-radius:8px;
-}
-
-.plan-box{
-background:#f3f4f6;
-padding:10px;
-border-radius:10px;
-font-size:13px;
-}
-
-.pro-btn{
-width:100%;
-margin-top:8px;
-padding:8px;
-border:none;
-background:#f59e0b;
-color:white;
-border-radius:8px;
-cursor:pointer;
-font-weight:600;
-}
-
-.side-section{
-display:flex;
-flex-direction:column;
-gap:6px;
-}
-
-.side-section h3{
-font-size:13px;
-color:#6b7280;
-}
-
-.side-btn{
-padding:8px;
-border:none;
-background:#f3f4f6;
-border-radius:8px;
-cursor:pointer;
-text-align:left;
-}
-
-.side-btn.active{
-background:#2563eb;
-color:white;
-}
-
-/* CHAT */
-
-.chat{
-flex:1;
-display:flex;
-flex-direction:column;
-background:white;
-}
-
-.chat-header{
-display:flex;
-align-items:center;
-gap:12px;
-padding:14px;
-border-bottom:1px solid #eee;
-}
-
-.avatar{
-width:42px;
-height:42px;
-border-radius:50%;
-transition:0.2s;
-}
-
-.avatar.speaking{
-box-shadow:0 0 15px #2563eb;
-transform:scale(1.05);
-}
-
-.chat-info .name{
-font-weight:700;
-}
-
-.status{
-font-size:12px;
-color:#6b7280;
-}
-
-.messages{
-flex:1;
-overflow:auto;
-padding:20px;
-display:flex;
-flex-direction:column;
-gap:12px;
-background:#f9fafb;
-}
-
-.msg{
-max-width:70%;
-padding:12px 16px;
-border-radius:16px;
-line-height:1.4;
-}
-
-.user{
-background:#2563eb;
-color:white;
-align-self:flex-end;
-}
-
-.bot{
-background:white;
-border:1px solid #e5e7eb;
-align-self:flex-start;
-}
-
-/* TYPING */
-
-.typing{
-padding:10px 20px;
-font-size:13px;
-color:#6b7280;
-display:none;
-}
-
-/* INPUT */
-
-.input-area{
-display:flex;
-gap:8px;
-padding:12px;
-border-top:1px solid #eee;
-}
-
-.input-area input{
-flex:1;
-padding:12px;
-border-radius:20px;
-border:1px solid #e5e7eb;
-}
-
-.send-btn{
-background:#2563eb;
-color:white;
-border:none;
-padding:10px 16px;
-border-radius:20px;
-cursor:pointer;
-}
-
-.mic-btn{
-background:#ef4444;
-color:white;
-border:none;
-padding:10px;
-border-radius:50%;
-cursor:pointer;
-}
-
-.tool-btn{
-background:#e5e7eb;
-border:none;
-padding:10px;
-border-radius:50%;
-cursor:pointer;
-}
-
-/* ERRO HIGHLIGHT */
-
-.error-word{
-background:#fee2e2;
-color:#991b1b;
-padding:2px 4px;
-border-radius:6px;
-cursor:pointer;
-font-weight:600;
-}
-
-/* PANEL ERROS */
-
-.errors-panel{
-position:fixed;
-right:0;
-top:0;
-width:260px;
-height:100vh;
-background:white;
-border-left:1px solid #eee;
-padding:16px;
-overflow:auto;
-}
-
-.hidden{
-display:none;
-}
-
-/* AUDIO */
-
-audio{
-margin-top:8px;
-width:100%;
-}
-.audio-btn {
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 38px;
-  height: 38px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.msg.user .audio-btn {
-  background: #2563eb;
-}
-
-.msg.bot .audio-btn {
-  background: #10b981;
-}
-
-</style>
-
-<!-- ============================= -->
-<!-- FIM PARTE 2 -->
-<!-- ============================= -->
-```
-```html
-<!-- ============================= -->
-<!-- INICIO PARTE 3 -->
-<!-- ============================= -->
-
+</body>
+</html>
 <script>
 
-let mode="teacher"
-let plan="free"
-let currentAudio = null;
-function createAudioBubble(url, type) {
-  const wrapper = document.createElement("div");
-  wrapper.className = "msg " + type;
+let mode = "teacher"
+let plan = "free"
 
-  const btn = document.createElement("button");
-  btn.innerText = "▶";
-  btn.className = "audio-btn";
+let currentAudio = null
 
-  const audio = new Audio(url);
-  audio.preload = "auto";
-
-  let playing = false;
-
-  btn.onclick = () => {
-    if (currentAudio && currentAudio !== audio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-    }
-
-    if (!playing) {
-      audio.play();
-      btn.innerText = "⏸";
-      currentAudio = audio;
-    } else {
-      audio.pause();
-      btn.innerText = "▶";
-      currentAudio = null;
-    }
-
-    playing = !playing;
-  };
-
-  audio.onended = () => {
-    playing = false;
-    btn.innerText = "▶";
-    currentAudio = null;
-  };
-
-  wrapper.appendChild(btn);
-  return wrapper;
+let usage = {
+messages: 0,
+audio: 0
 }
 
-function registerAudio(audio) {
-  if (currentAudio && currentAudio !== audio) {
-    currentAudio.pause();
-  }
-
-  currentAudio = audio;
-
-  audio.onplay = () => {
-    if (currentAudio && currentAudio !== audio) {
-      currentAudio.pause();
-    }
-    currentAudio = audio;
-  };
+const limits = {
+free: { messages: 20, audio: 10 },
+pro: { messages: 9999, audio: 9999 }
 }
 
+const messages = document.getElementById("messages")
+const input = document.getElementById("textInput")
+const avatar = document.getElementById("avatar")
+const typing = document.getElementById("typing")
 
-let usage={
-messages:0,
-audio:0
+/* =========================
+USER ID
+========================= */
+function getOrCreateUserId() {
+let id = localStorage.getItem("aria_user")
+if (!id) {
+id = crypto.randomUUID()
+localStorage.setItem("aria_user", id)
 }
-
-const limits={
-free:{messages:20,audio:10},
-pro:{messages:9999,audio:9999}
+return id
 }
-
-const messages=document.getElementById("messages")
-const input=document.getElementById("textInput")
-const avatar=document.getElementById("avatar")
-const typing=document.getElementById("typing")
 
 /* =========================
 MODE
 ========================= */
-
-function setMode(m){
-
-mode=m
+function setMode(event, m) {
+mode = m
 
 document.querySelectorAll(".side-btn")
-.forEach(b=>b.classList.remove("active"))
+.forEach(b => b.classList.remove("active"))
 
 event.target.classList.add("active")
 
-document.getElementById("status").innerText=
-mode==="teacher"
+document.getElementById("status").innerText =
+mode === "teacher"
 ? "Modo professora ativa"
 : "Modo conversa natural"
-
 }
 
 /* =========================
-SEND
+AUDIO PLAYER (WHATSAPP STYLE)
 ========================= */
+function createAudioBubble(url, type) {
 
-document.getElementById("sendBtn").onclick=send
-input.addEventListener("keypress",e=>{
-if(e.key==="Enter") send()
-})
+const wrapper = document.createElement("div")
+wrapper.className = "msg " + type
 
-async function send(){
+const container = document.createElement("div")
+container.className = "audio-wrapper"
 
-if(usage.messages>=limits[plan].messages){
-alert("Limite FREE atingido")
-return
+const btn = document.createElement("button")
+btn.className = "audio-btn"
+btn.innerText = "▶"
+
+const bar = document.createElement("div")
+bar.className = "audio-bar"
+
+const progress = document.createElement("div")
+progress.className = "audio-progress"
+
+bar.appendChild(progress)
+
+const time = document.createElement("div")
+time.className = "time"
+time.innerText = "0:00"
+
+const audio = new Audio(url)
+audio.preload = "auto"
+
+let playing = false
+
+btn.onclick = async () => {
+
+if (currentAudio && currentAudio !== audio) {
+currentAudio.pause()
 }
 
-const text=input.value
-if(!text) return
+if (!playing) {
+await audio.play()
+btn.innerText = "⏸"
+currentAudio = audio
+} else {
+audio.pause()
+btn.innerText = "▶"
+currentAudio = null
+}
 
-addMsg(text,"user")
+playing = !playing
+}
 
-input.value=""
+/* progresso */
+audio.ontimeupdate = () => {
+const percent = (audio.currentTime / audio.duration) * 100
+progress.style.width = percent + "%"
 
-usage.messages++
-updateUsage()
+const min = Math.floor(audio.currentTime / 60)
+const sec = Math.floor(audio.currentTime % 60)
+time.innerText = `${min}:${sec.toString().padStart(2,"0")}`
+}
 
-typing.style.display="block"
+audio.onended = () => {
+btn.innerText = "▶"
+progress.style.width = "0%"
+playing = false
+currentAudio = null
+}
 
-const res=await fetch("/chat",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-message:text,
-mode,
-plan
-})
-})
+container.appendChild(btn)
+container.appendChild(bar)
+container.appendChild(time)
 
-const data=await res.json()
+wrapper.appendChild(container)
 
-typing.style.display="none"
+messages.appendChild(wrapper)
+messages.scrollTop = messages.scrollHeight
 
-addMsg(data.reply,"bot")
-
-speak(data.reply)
-
+return audio
 }
 
 /* =========================
 MESSAGES
 ========================= */
 function addMsg(text, type) {
-  const div = document.createElement("div");
-  div.className = "msg " + type;
+const div = document.createElement("div")
+div.className = "msg " + type
 
-  // 1️⃣ Destacar palavras com erro
-  let html = text.replace(/\*\*(.*?)\*\*/g, '<span class="error-word">$1</span>');
+let html = text
+.replace(/\*\*(.*?)\*\*/g, '<span class="error-word">$1</span>')
+.replace(/([^\n]+?:)/g, '<strong>$1</strong>')
+.replace(/\n/g, '<br>')
 
-  // 2️⃣ Quebras de linha automáticas para separar seções
-  // Considera que o OpenAI usa ": " para títulos (Ex: "Explicação:", "Tradução:")
-  html = html
-    .replace(/([^\n]+?:)/g, '<strong>$1</strong>') // deixa títulos em negrito
-    .replace(/\n/g, '<br>');                        // substitui novas linhas por <br>
+div.innerHTML = html
 
-  div.innerHTML = html;
-
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
+messages.appendChild(div)
+messages.scrollTop = messages.scrollHeight
 }
 
 /* =========================
-SPEAK
+SPEAK (ÁRIA)
 ========================= */
-
 async function speak(text) {
-  const res = await fetch("/speak", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text })
-  });
 
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
+usage.audio++
+updateUsage()
 
-  // 🔥 SÓ DEVOLVE O ÁUDIO
-  return url;
+const res = await fetch("/speak", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ text })
+})
+
+const blob = await res.blob()
+const url = URL.createObjectURL(blob)
+
+/* cria player */
+const audio = createAudioBubble(url, "bot")
+
+/* autoplay seguro */
+try {
+await audio.play()
+avatar.classList.add("speaking")
+} catch (e) {
+console.log("Autoplay bloqueado")
 }
-/* =========================
-MIC
-========================= */
 
-let recorder;
-let chunks = [];
-let recording = false;
+/* parar animação */
+audio.onended = () => {
+avatar.classList.remove("speaking")
+}
+
+}
+
+/* =========================
+SEND
+========================= */
+document.getElementById("sendBtn").onclick = send
+
+input.addEventListener("keypress", e => {
+if (e.key === "Enter") send()
+})
+
+async function send() {
+
+if (usage.messages >= limits[plan].messages) {
+alert("Limite FREE atingido")
+return
+}
+
+const text = input.value
+if (!text) return
+
+addMsg(text, "user")
+
+input.value = ""
+
+usage.messages++
+updateUsage()
+
+typing.style.display = "block"
+
+const res = await fetch("/chat", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({
+message: text,
+userId: getOrCreateUserId()
+})
+})
+
+const data = await res.json()
+
+typing.style.display = "none"
+
+addMsg(data.reply, "bot")
+
+await speak(data.reply)
+
+}
+
+/* =========================
+MIC (GRAVAÇÃO REAL)
+========================= */
+let recorder
+let chunks = []
+let recording = false
 
 document.getElementById("micBtn").onclick = async () => {
-  if (usage.audio >= limits[plan].audio) {
-    alert("Limite áudio FREE");
-    return;
-  }
 
-  if (!recording) {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+if (usage.audio >= limits[plan].audio) {
+alert("Limite áudio FREE")
+return
+}
 
-    recorder = new MediaRecorder(stream);
-    recorder.start();
+if (!recording) {
 
-    recording = true;
-    chunks = [];
+/* START */
+const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
 
-    recorder.ondataavailable = e => chunks.push(e.data);
+recorder = new MediaRecorder(stream)
+recorder.start()
 
-  } else {
-    recorder.stop();
-    recording = false;
+chunks = []
+recording = true
 
-    const blob = new Blob(chunks, { type: "audio/webm" });
+recorder.ondataavailable = e => chunks.push(e.data)
 
-    const form = new FormData();
-    form.append("audio", blob, "gravacao.webm");
-    form.append("userId", getOrCreateUserId());
+} else {
 
-    typing.style.display = "block";
+/* STOP */
+recorder.stop()
+recording = false
 
-    const res = await fetch("/api/audio-eval", {
-      method: "POST",
-      body: form
-    });
+recorder.onstop = async () => {
 
-    const data = await res.json();
+usage.audio++
+updateUsage()
 
-    typing.style.display = "none";
+const blob = new Blob(chunks, { type: "audio/webm" })
 
-    // =========================
-    // ÁUDIO DO USUÁRIO (WHATSAPP)
-    // =========================
-    const userBubble = createAudioBubble(data.audioUrl, "user");
-    messages.appendChild(userBubble);
+const form = new FormData()
+form.append("audio", blob, "audio.webm")
+form.append("userId", getOrCreateUserId())
 
-    // =========================
-    // TEXTO ÁRIA
-    // =========================
-    addMsg(data.reply, "bot");
+typing.style.display = "block"
 
-    // =========================
-    // ÁUDIO ÁRIA (WHATSAPP STYLE)
-    // =========================
-    const url = await speak(data.reply);
-const bubble = createAudioBubble(url, "bot");
-messages.appendChild(bubble);
+const res = await fetch("/api/audio-eval", {
+method: "POST",
+body: form
+})
 
-    messages.scrollTop = messages.scrollHeight;
-  }
-};
-  
+const data = await res.json()
+
+typing.style.display = "none"
+
+/* áudio usuário */
+createAudioBubble(data.audioUrl, "user")
+
+/* resposta */
+addMsg(data.reply, "bot")
+
+/* fala aria */
+await speak(data.reply)
+
+}
+
+}
+
+}
+
 /* =========================
 UPLOAD
 ========================= */
-
-document.getElementById("uploadBtn").onclick=()=>{
+document.getElementById("uploadBtn").onclick = () => {
 document.getElementById("fileInput").click()
 }
 
-document.getElementById("fileInput").onchange=async(e)=>{
-
-const file=e.target.files[0]
-
-const form=new FormData()
-form.append("file",file)
-
-typing.style.display="block"
-
-const res=await fetch("/upload",{
-method:"POST",
-body:form
-})
-
-const data=await res.json()
-
-typing.style.display="none"
-addMsg(data.reply,"bot")
-
+/* =========================
+UTILS
+========================= */
+function toggleErrors() {
+document.getElementById("errorsPanel").classList.toggle("hidden")
 }
 
-/* =========================
-ERROR PANEL
-========================= */
-
-function toggleErrors(){
-document.getElementById("errorsPanel")
-.classList.toggle("hidden")
+function newChat() {
+messages.innerHTML = ""
 }
 
-/* =========================
-NEW CHAT
-========================= */
-
-function newChat(){
-messages.innerHTML=""
+function deepMode() {
+addMsg("Modo investigar ativado", "bot")
 }
 
-/* =========================
-DEEP MODE
-========================= */
-
-function deepMode(){
-addMsg("Modo investigar ativado","bot")
-}
-
-/* =========================
-USAGE
-========================= */
-
-function updateUsage(){
-
-document.getElementById("usageBox").innerHTML=
+function updateUsage() {
+document.getElementById("usageBox").innerHTML =
 `
 Mensagens: ${usage.messages}/${limits[plan].messages}<br>
 Áudio: ${usage.audio}/${limits[plan].audio}
 `
-
 }
 
-/* =========================
-PRO
-========================= */
-
-async function upgradePro(){
-
-const res=await fetch("/create-checkout-session",{
-method:"POST"
-})
-
-const data=await res.json()
-
-window.location.href=data.url
-
+async function upgradePro() {
+const res = await fetch("/create-checkout-session", { method: "POST" })
+const data = await res.json()
+window.location.href = data.url
 }
 
 updateUsage()
 
-document.addEventListener("play", function(e) {
-  const audios = document.querySelectorAll("audio");
-  audios.forEach(a => {
-    if (a !== e.target) a.pause();
-  });
-}, true);
-
 </script>
-
-<!-- ============================= -->
-<!-- FIM PARTE 3 -->
-<!-- ============================= -->
-
-</body>
-</html>
