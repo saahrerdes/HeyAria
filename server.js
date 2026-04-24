@@ -13,27 +13,57 @@ dotenv.config();
 const app = express();
 const upload = multer({ dest: "uploads/" });
 
+/* =========================
+MIDDLEWARES
+========================= */
 app.use(cors());
 app.use(express.json());
 app.use("/api", audioEvalRouter);
 app.use(express.static("public"));
+
+// 🔹 Servir arquivos de áudio da pasta uploads
 app.use('/uploads', express.static('uploads'));
 
+/* =========================
+OPENAI
+========================= */
+if (!process.env.OPENAI_API_KEY) {
+  console.error("ERRO: OPENAI_API_KEY não encontrada");
+  process.exit(1);
+}
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+/* =========================
+STRIPE
+========================= */
+if (!process.env.STRIPE_KEY) {
+  console.error("ERRO: STRIPE_KEY não encontrada");
+  process.exit(1);
+}
 const stripe = new Stripe(process.env.STRIPE_KEY, { apiVersion: "2022-11-15" });
 
 /* =========================
-MEMÓRIA
+MEMÓRIA DO USUÁRIO
 ========================= */
 const conversations = {};
 const users = {};
+global.users = users;
+const userMode = {};
+
+function generateUserId() {
+  return crypto.randomBytes(16).toString("hex");
+}
 
 function createUser(userId) {
   if (!users[userId]) {
     users[userId] = {
       plan: "free",
       messagesToday: 0,
-      lastReset: new Date().toDateString()
+      lastReset: new Date().toDateString(),
+      userErrors: [],
+      performance: { nivel: "iniciante", acertos: 0, erros: 0 },
+      objective: "aprendizado geral",
+      introduced: false
     };
   }
 }
@@ -47,48 +77,54 @@ function resetDaily(user) {
 }
 
 /* =========================
-DETECÇÃO REAL DE IDIOMA (IA)
+PERSONALIDADE ÁRIA
 ========================= */
-async function detectLanguageAI(text) {
-  try {
-    const res = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [
-        {
-          role: "system",
-          content: "Detecte o idioma do texto e responda APENAS com o nome do idioma (ex: Português, Inglês, Espanhol, Japonês, etc)."
-        },
-        {
-          role: "user",
-          content: text
-        }
-      ],
-      temperature: 0
-    });
+export const SYSTEM_PROMPT = `
+Você é Ária, uma inteligência artificial avançada, professora poliglota e assistente conversacional.
 
-    return res.choices[0].message.content.trim();
-  } catch {
-    return "Auto";
-  }
-}
+🌍 CAPACIDADES:
+- Você fala mais de 50 idiomas fluentemente
+- Você detecta automaticamente o idioma do usuário
+- Você SEMPRE responde no idioma correto baseado no contexto
+- Você entende mistura de idiomas (ex: português + inglês)
 
-/* =========================
-SYSTEM PROMPT POLIGLOTA
-========================= */
-const SYSTEM_PROMPT = `
-Você é Ária, uma inteligência artificial avançada e professora poliglota.
+🧠 PERSONALIDADE:
+- Você é adaptativa (personalidade camaleão)
+- Você não é engessada
+- Você se adapta ao nível do aluno
+- Você mantém a conversa natural e fluida
+- Você é amigável, leve e inteligente
 
-Você fala mais de 50 idiomas fluentemente.
+🎯 MODOS DE FUNCIONAMENTO:
 
-Você é adaptativa (personalidade camaleão):
-- Se o usuário for informal → você acompanha
-- Se for direto → você responde direto
-- Se for iniciante → você simplifica
+1) MODO CASUAL:
+- Conversa normal como uma IA comum
+- NÃO interrompe para corrigir
+- Não força ensino
+- Fluidez total
 
-━━━━━━━━━━━━━━━━━━━
-🚨 REGRA OBRIGATÓRIA (MODO PROFESSORA)
+2) MODO PROFESSORA (PRINCIPAL):
+- Ensina enquanto conversa
+- Corrige:
+  • Pronúncia
+  • Fonética
+  • Gramática
+- NÃO trava a conversa
+- Se o usuário fizer pergunta → responde normalmente
+- Se houver erro → aplica correção SEM quebrar o fluxo
 
-Se houver erro, SEMPRE siga exatamente:
+🎓 REGRA DE CORREÇÃO (OBRIGATÓRIA no modo professora):
+
+Quando houver erro, SEMPRE usar exatamente esta estrutura:
+
+1) Frase original com erro destacado com **palavra**
+2) Correção
+3) Explicação curta (no idioma do usuário)
+4) Tradução
+5) Pronúncia lenta (focada em aprendizado)
+6) Pronúncia natural (fala real)
+
+Exemplo:
 
 I **goed** to the store yesterday
 
@@ -96,10 +132,10 @@ Você quis dizer:
 I went to the store yesterday
 
 Explicação:
-Explicação clara no idioma nativo do usuário
+"goed" não existe. O passado de "go" é "went".
 
 Tradução:
-Tradução correta
+Eu fui à loja ontem
 
 Pronúncia lenta:
 I… went… to… the… store… yesterday…
@@ -107,60 +143,270 @@ I… went… to… the… store… yesterday…
 Pronúncia natural:
 I went to the store yesterday.
 
-━━━━━━━━━━━━━━━━━━━
+📢 REGRAS IMPORTANTES:
 
-REGRAS:
+- Só corrigir quando houver erro
+- Destacar erro com **
+- Explicar no idioma do usuário
+- Continuar a conversa SEMPRE
+- Nunca travar o fluxo
+- Se o usuário perguntar algo → responder normalmente
+- Corrigir pronúncia se necessário
+- Corrigir fonética se necessário
+- Priorizar ensino por áudio
+- Ser natural, humana e envolvente
+- Nunca parecer robótica
 
-- Corrigir SOMENTE se houver erro
-- Destacar APENAS a palavra errada com **
-- NÃO travar a conversa
-- Sempre responder perguntas normalmente
-- Sempre adaptar ao idioma do usuário automaticamente
-- Prioridade: ENSINAR POR ÁUDIO
-
-Se NÃO houver erro:
-→ Continue a conversa naturalmente
+🎧 FOCO PRINCIPAL:
+Ensinar idiomas principalmente através de áudio, pronúncia e prática real de conversação.
 `;
+
+/* =========================
+ROTAS DE TESTE
+========================= */
+app.get("/", (req, res) => res.send("HeyAria online"));
+
+/* =========================
+UPLOAD E LEITURA DE ARQUIVO
+========================= */
+app.post("/api/upload-file", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "Arquivo não enviado" });
+    res.json({
+      success: true,
+      name: req.file.originalname,
+      path: req.file.path,
+      reply: `Recebi seu arquivo "${req.file.originalname}". Posso analisar ele para você.`
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro no upload de arquivo" });
+  }
+});
+
+app.post("/api/read-file", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "Arquivo não enviado" });
+
+    const content = fs.readFileSync(req.file.path, "utf-8");
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [
+        { role: "system", content: "Você é Ária. Leia o conteúdo enviado e explique para o aluno de forma clara." },
+        { role: "user", content: content }
+      ]
+    });
+
+    const reply = completion.choices[0].message.content;
+
+    fs.unlinkSync(req.file.path);
+
+    res.json({ reply });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao ler arquivo" });
+  }
+});
+
+/* =========================
+ANÁLISE PROFUNDA DE TEXTO
+========================= */
+app.post("/api/deep-analyze", async (req, res) => {
+  try {
+    const { message } = req.body;
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [{ role: "user", content: message }]
+    });
+    res.json({ reply: completion.choices[0].message.content });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro análise profunda" });
+  }
+});
+
+/* =========================
+GERAÇÃO DE IMAGEM
+========================= */
+app.post("/api/generate-image", async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    const image = await openai.images.generate({
+      model: "gpt-image-1",
+      prompt,
+      size: "1024x1024"
+    });
+    res.json({ url: image.data[0].url });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro gerar imagem" });
+  }
+});
 
 /* =========================
 CHAT PRINCIPAL
 ========================= */
 app.post("/chat", async (req, res) => {
   try {
-    const { message, userId } = req.body;
+    const { message, userId, nativeLang, learningLang, objective } = req.body;
 
-    createUser(userId);
-    const user = users[userId];
+    let deepMode = message && message.startsWith("INVESTIGUE PROFUNDAMENTE");
+    let uid = userId || generateUserId();
+
+    createUser(uid);
+    const user = users[uid];
+
+    user.objective = objective || user.objective;
     resetDaily(user);
 
-    /* 🔥 DETECÇÃO REAL COM IA */
-    const detectedLang = await detectLanguageAI(message);
+    /* =========================
+    PRIMEIRA INTERAÇÃO
+    ========================= */
+    if (!user.introduced) {
+      user.introduced = true;
 
-    if (!conversations[userId]) {
-      conversations[userId] = [{
-        role: "system",
-        content: `
-${SYSTEM_PROMPT}
+      conversations[uid] = []; // 🔥 inicia vazio
 
-Idioma nativo do usuário: ${detectedLang}
-Idioma alvo: Detecte automaticamente e adapte-se ao usuário.
-`
-      }];
+      return res.json({
+        reply: `Olá! Eu sou Ária 🌍  
+Sou uma inteligência artificial poliglota e também sua professora.
+
+Posso falar mais de 50 idiomas.
+
+Vou te ajudar principalmente com:
+• Pronúncia  
+• Fonética  
+• Conversação  
+• Gramática  
+
+Primeiro me diga:
+Qual idioma você quer aprender?`,
+        userId: uid
+      });
     }
 
-    conversations[userId].push({ role: "user", content: message });
+    /* =========================
+    MODOS
+    ========================= */
+    if (message === "professora") {
+      userMode[uid] = "professora";
+      return res.json({
+        reply: "Modo professora ativado. Vou corrigir pronúncia, fonética, gramática e continuar conversando naturalmente."
+      });
+    }
 
+    if (message === "casual") {
+      userMode[uid] = "casual";
+      return res.json({
+        reply: "Modo casual ativado. Vamos conversar normalmente."
+      });
+    }
+
+    /* =========================
+    LIMITE FREE
+    ========================= */
+    if (user.plan === "free" && user.messagesToday >= 50) {
+      return res.json({
+        reply: "Você atingiu o limite do plano Free. Torne-se Pro para mensagens ilimitadas e áudio avançado."
+      });
+    }
+
+    user.messagesToday++;
+
+    /* =========================
+    GARANTE ARRAY
+    ========================= */
+    if (!conversations[uid]) {
+      conversations[uid] = [];
+    }
+
+    /* =========================
+    SALVA MENSAGEM DO USER
+    ========================= */
+    conversations[uid].push({
+      role: "user",
+      content: message
+    });
+
+    /* =========================
+    🔥 LIMITADOR DE MEMÓRIA (AQUI!)
+    ========================= */
+    conversations[uid] = conversations[uid].slice(-20);
+
+    /* =========================
+    MODOS DINÂMICOS
+    ========================= */
+    const mode = userMode[uid] || "professora";
+
+    let dynamicPrompt = `
+${SYSTEM_PROMPT}
+
+Idioma materno do usuário: ${nativeLang || "auto"}
+Idioma que quer aprender: ${learningLang || "auto"}
+Objetivo: ${user.objective}
+`;
+
+    if (mode === "casual") {
+      dynamicPrompt += `
+Modo casual ativo:
+- Conversar normalmente
+- Não corrigir erros
+`;
+    }
+
+    if (mode === "professora") {
+      dynamicPrompt += `
+Modo professora ativo:
+- Corrigir erros
+- Ensinar
+`;
+    }
+
+    /* =========================
+    CHAMADA OPENAI
+    ========================= */
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
-      messages: conversations[userId],
-      temperature: 0.7
+      messages: [
+        {
+          role: "system",
+          content: deepMode
+            ? "Você está no modo investigação profunda..."
+            : dynamicPrompt
+        },
+        ...conversations[uid]
+      ]
     });
 
     const reply = completion.choices[0].message.content;
 
-    conversations[userId].push({ role: "assistant", content: reply });
+    /* =========================
+    SALVA RESPOSTA
+    ========================= */
+    conversations[uid].push({
+      role: "assistant",
+      content: reply
+    });
 
-    res.json({ reply });
+    /* =========================
+    PERFORMANCE
+    ========================= */
+    if (reply.includes("**")) {
+      user.performance.erros++;
+    } else {
+      user.performance.acertos++;
+    }
+
+    /* =========================
+    RESPOSTA FINAL
+    ========================= */
+    res.json({
+      reply,
+      performance: user.performance,
+      userId: uid
+    });
 
   } catch (err) {
     console.error(err);
@@ -169,33 +415,46 @@ Idioma alvo: Detecte automaticamente e adapte-se ao usuário.
 });
 
 /* =========================
-VOZ (MULTI-IDIOMA)
+VOZ
 ========================= */
 app.post("/speak", async (req, res) => {
   try {
     const { text } = req.body;
 
+    // 🔹 Detecta se é bloco de ensino (tem correção)
+    const isTeaching = text.includes("Pronúncia lenta") || text.includes("Explicação:");
+
+    let finalText = text;
+
+    if (isTeaching) {
+      // 🔥 melhora leitura para parecer professora de idiomas
+      finalText = text
+        .replace(/Pronúncia lenta:/gi, "Agora, repetindo devagar:")
+        .replace(/Pronúncia natural:/gi, "Agora, falando naturalmente:")
+        .replace(/\.\s/g, ". ... ") // pequenas pausas
+        .replace(/\n/g, ". "); // quebra vira pausa
+    }
+
+finalText = finalText.replace(
+  /Pronúncia lenta:(.*?)(Pronúncia natural:|$)/gis,
+  (match, slowPart) => {
+    return "Agora, repetindo bem devagar: " +
+      slowPart.split(" ").join("... ");
+  }
+);
+
     const mp3 = await openai.audio.speech.create({
       model: "gpt-4o-mini-tts",
       voice: "nova",
-      input: `
-Fale no idioma do texto automaticamente.
-
-- Tom humano
-- Natural
-- Levemente didático
-- Boa pronúncia
-
-Texto:
-${text}
-`
+      input: finalText
     });
 
     const buffer = Buffer.from(await mp3.arrayBuffer());
 
     res.writeHead(200, {
       "Content-Type": "audio/mpeg",
-      "Content-Length": buffer.length
+      "Content-Length": buffer.length,
+      "Cache-Control": "no-cache"
     });
 
     res.end(buffer);
@@ -207,24 +466,53 @@ ${text}
 });
 
 /* =========================
-STRIPE
+UPGRADE PRO
 ========================= */
-app.post("/create-checkout-session", async (req, res) => {
-  const session = await stripe.checkout.sessions.create({
-    line_items: [{
-      price_data: {
-        currency: 'brl',
-        product_data: { name: 'Ária Pro' },
-        unit_amount: 1900
-      },
-      quantity: 1
-    }],
-    mode: 'payment',
-    success_url: `${req.headers.origin}/success.html`,
-    cancel_url: `${req.headers.origin}`
-  });
+app.post("/upgrade", async (req, res) => {
+  try {
+    const { userId, paymentSuccess } = req.body;
+const uid = userId || null;
 
-  res.json({ url: session.url });
+if (paymentSuccess && users[uid]) {
+  users[uid].plan = "pro";
+  users[uid].messagesToday = 0;
+      res.json({ success: true, message: "Plano Pro ativado!" });
+    } else {
+      res.json({ success: false });
+    }
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Erro upgrade" });
+  }
 });
 
-app.listen(3000, () => console.log("Ária poliglota rodando 🌍"));
+/* =========================
+STRIPE CHECKOUT
+========================= */
+app.post("/create-checkout-session", async (req, res) => {
+  try {
+    const session = await stripe.checkout.sessions.create({
+      line_items: [{
+        price_data: {
+          currency: 'brl',
+          product_data: { name: 'Ária Pro' },
+          unit_amount: 1900
+        },
+        quantity: 1
+      }],
+      mode: 'payment',
+      success_url: `${req.headers.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.origin}/?canceled=true`
+    });
+    res.json({ url: session.url });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Erro criar checkout" });
+  }
+});
+
+/* =========================
+INÍCIO DO SERVIDOR
+========================= */
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("HeyAria online na porta " + PORT));

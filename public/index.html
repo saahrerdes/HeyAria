@@ -1,16 +1,416 @@
-﻿<!DOCTYPE html>
+﻿```html
+<!-- ============================= -->
+<!-- INICIO PARTE 1 -->
+<!-- ============================= -->
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Ária AI</title>
 
 <link rel="stylesheet" href="style.css">
 
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- ========================= -->
+<!-- SIDEBAR -->
+<!-- ========================= -->
+<div class="sidebar">
+
+<div class="logo">
+<img src="/images/aria.png" class="logo-avatar">
+<span>Ária</span>
+</div>
+
+<div class="plan-box">
+<div id="planName">Plano Free</div>
+<div id="usageBox"></div>
+<button onclick="upgradePro()" class="pro-btn">
+💎 Tornar-se PRO
+</button>
+</div>
+
+<!-- MODOS -->
+<div class="side-section">
+
+<h3>Modo</h3>
+
+<button class="side-btn active" onclick="setMode('teacher')">
+👩‍🏫 Professora
+</button>
+
+<button class="side-btn" onclick="setMode('casual')">
+💬 Casual
+</button>
+
+</div>
+
+<!-- FUNCIONALIDADES -->
+<div class="side-section">
+
+<h3>Ferramentas</h3>
+
+<button class="side-btn" onclick="deepMode()">
+🔎 Investigar a fundo
+</button>
+
+<button class="side-btn" onclick="toggleErrors()">
+📚 Dicionário de erros
+</button>
+
+<button class="side-btn" onclick="newChat()">
+🆕 Nova conversa
+</button>
+
+</div>
+
+</div>
+
+<!-- ========================= -->
+<!-- CHAT -->
+<!-- ========================= -->
+<div class="chat">
+
+<!-- HEADER -->
+<div class="chat-header">
+
+<img src="/images/aria.png" class="avatar" id="avatar">
+
+<div class="chat-info">
+<div class="name">Ária</div>
+<div class="status" id="status">
+IA professora poliglota
+</div>
+</div>
+
+</div>
+
+<!-- MENSAGENS -->
+<div class="messages" id="messages"></div>
+
+<!-- DIGITANDO -->
+<div class="typing" id="typing">
+Ária está digitando...
+</div>
+
+<!-- INPUT -->
+<div class="input-area">
+
+<button id="uploadBtn" class="tool-btn">
+📎
+</button>
+
+<input 
+type="text" 
+id="textInput"
+placeholder="Fale com a Ária..."
+>
+
+<button id="micBtn" class="mic-btn">
+🎤
+</button>
+
+<button id="sendBtn" class="send-btn">
+Enviar
+</button>
+
+</div>
+
+<input type="file" id="fileInput" hidden>
+
+</div>
+
+</div>
+
+<!-- ========================= -->
+<!-- PAINEL ERROS -->
+<!-- ========================= -->
+<div id="errorsPanel" class="errors-panel hidden">
+<h3>Dicionário de erros</h3>
+<div id="errorsList"></div>
+</div>
+
+<!-- ========================= -->
+<!-- AUDIO PLAYER -->
+<!-- ========================= -->
+<audio id="audioPlayer"></audio>
+
+<!-- ============================= -->
+<!-- FIM PARTE 1 -->
+<!-- ============================= -->
+```
+```html
+<!-- ============================= -->
+<!-- INICIO PARTE 2 -->
+<!-- ============================= -->
+
 <style>
 
-/* (SEU CSS ORIGINAL MANTIDO) */
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+}
 
+body{
+background:#f5f6fa;
+height:100vh;
+overflow:hidden;
+}
+
+.app{
+display:flex;
+height:100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+width:260px;
+background:white;
+border-right:1px solid #e5e7eb;
+display:flex;
+flex-direction:column;
+padding:16px;
+gap:16px;
+}
+
+.logo{
+display:flex;
+align-items:center;
+gap:10px;
+font-size:18px;
+font-weight:700;
+}
+
+.logo-avatar{
+width:34px;
+height:34px;
+border-radius:8px;
+}
+
+.plan-box{
+background:#f3f4f6;
+padding:10px;
+border-radius:10px;
+font-size:13px;
+}
+
+.pro-btn{
+width:100%;
+margin-top:8px;
+padding:8px;
+border:none;
+background:#f59e0b;
+color:white;
+border-radius:8px;
+cursor:pointer;
+font-weight:600;
+}
+
+.side-section{
+display:flex;
+flex-direction:column;
+gap:6px;
+}
+
+.side-section h3{
+font-size:13px;
+color:#6b7280;
+}
+
+.side-btn{
+padding:8px;
+border:none;
+background:#f3f4f6;
+border-radius:8px;
+cursor:pointer;
+text-align:left;
+}
+
+.side-btn.active{
+background:#2563eb;
+color:white;
+}
+
+/* CHAT */
+
+.chat{
+flex:1;
+display:flex;
+flex-direction:column;
+background:white;
+}
+
+.chat-header{
+display:flex;
+align-items:center;
+gap:12px;
+padding:14px;
+border-bottom:1px solid #eee;
+}
+
+.avatar{
+width:42px;
+height:42px;
+border-radius:50%;
+transition:0.2s;
+}
+
+.avatar.speaking{
+box-shadow:0 0 15px #2563eb;
+transform:scale(1.05);
+}
+
+.chat-info .name{
+font-weight:700;
+}
+
+.status{
+font-size:12px;
+color:#6b7280;
+}
+
+.messages{
+flex:1;
+overflow:auto;
+padding:20px;
+display:flex;
+flex-direction:column;
+gap:12px;
+background:#f9fafb;
+}
+
+.msg{
+max-width:70%;
+padding:12px 16px;
+border-radius:16px;
+line-height:1.4;
+}
+
+.user{
+background:#2563eb;
+color:white;
+align-self:flex-end;
+}
+
+.bot{
+background:white;
+border:1px solid #e5e7eb;
+align-self:flex-start;
+}
+
+/* TYPING */
+
+.typing{
+padding:10px 20px;
+font-size:13px;
+color:#6b7280;
+display:none;
+}
+
+/* INPUT */
+
+.input-area{
+display:flex;
+gap:8px;
+padding:12px;
+border-top:1px solid #eee;
+}
+
+.input-area input{
+flex:1;
+padding:12px;
+border-radius:20px;
+border:1px solid #e5e7eb;
+}
+
+.send-btn{
+background:#2563eb;
+color:white;
+border:none;
+padding:10px 16px;
+border-radius:20px;
+cursor:pointer;
+}
+
+.mic-btn{
+background:#ef4444;
+color:white;
+border:none;
+padding:10px;
+border-radius:50%;
+cursor:pointer;
+}
+
+.tool-btn{
+background:#e5e7eb;
+border:none;
+padding:10px;
+border-radius:50%;
+cursor:pointer;
+}
+
+/* ERRO HIGHLIGHT */
+
+.error-word{
+background:#fee2e2;
+color:#991b1b;
+padding:2px 4px;
+border-radius:6px;
+cursor:pointer;
+font-weight:600;
+}
+
+/* PANEL ERROS */
+
+.errors-panel{
+position:fixed;
+right:0;
+top:0;
+width:260px;
+height:100vh;
+background:white;
+border-left:1px solid #eee;
+padding:16px;
+overflow:auto;
+}
+
+.hidden{
+display:none;
+}
+
+/* AUDIO */
+
+audio{
+margin-top:8px;
+width:100%;
+}
+.audio-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.msg.user .audio-btn {
+  background: #2563eb;
+}
+
+.msg.bot .audio-btn {
+  background: #10b981;
+}
 .audio-wrapper{
 display:flex;
 align-items:center;
@@ -40,117 +440,431 @@ text-align:right;
 }
 
 </style>
-</head>
 
-<body>
+<!-- ============================= -->
+<!-- FIM PARTE 2 -->
+<!-- ============================= -->
+```
+```html
+<!-- ============================= -->
+<!-- INICIO PARTE 3 -->
+<!-- ============================= -->
 
-<div class="app">
+<script>
 
-<!-- SIDEBAR (SEM ALTERAÇÃO) -->
-<div class="sidebar">
-<div class="logo">
-<img src="/images/aria.png" class="logo-avatar">
-<span>Ária</span>
-</div>
+let mode="teacher"
+let plan="free"
+let currentAudio = null;
+function createAudioBubble(url, type) {
 
-<div class="plan-box">
-<div id="planName">Plano Free</div>
-<div id="usageBox"></div>
-<button onclick="upgradePro()" class="pro-btn">
-💎 Tornar-se PRO
-</button>
-</div>
+  const wrapper = document.createElement("div");
+  wrapper.className = "msg " + type;
 
-<div class="side-section">
-<h3>Modo</h3>
+  const container = document.createElement("div");
+  container.className = "audio-wrapper";
 
-<button class="side-btn active" onclick="setMode(event,'teacher')">
-👩‍🏫 Professora
-</button>
+  const btn = document.createElement("button");
+  btn.className = "audio-btn";
+  btn.innerText = "▶";
 
-<button class="side-btn" onclick="setMode(event,'casual')">
-💬 Casual
-</button>
-</div>
+  const bar = document.createElement("div");
+  bar.className = "audio-bar";
 
-<div class="side-section">
-<h3>Ferramentas</h3>
+  const progress = document.createElement("div");
+  progress.className = "audio-progress";
 
-<button class="side-btn" onclick="deepMode()">
-🔎 Investigar a fundo
-</button>
+  bar.appendChild(progress);
 
-<button class="side-btn" onclick="toggleErrors()">
-📚 Dicionário de erros
-</button>
+  const time = document.createElement("div");
+  time.className = "time";
+  time.innerText = "0:00";
 
-<button class="side-btn" onclick="newChat()">
-🆕 Nova conversa
-</button>
-</div>
-</div>
+  const audio = new Audio(url);
+  audio.preload = "auto";
+audio.setAttribute("controls", false);
+audio.onplay = () => {
+  if (currentAudio && currentAudio !== audio) {
+    currentAudio.pause();
+  }
+  currentAudio = audio;
+};
 
-<!-- CHAT -->
-<div class="chat">
+  let playing = false;
 
-<div class="chat-header">
-<img src="/images/aria.png" class="avatar" id="avatar">
+  btn.onclick = async () => {
 
-<div class="chat-info">
-<div class="name">Ária</div>
-<div class="status" id="status">IA professora poliglota</div>
-</div>
-</div>
+    if (currentAudio && currentAudio !== audio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }
 
-<div class="messages" id="messages"></div>
-<div class="typing" id="typing">Ária está digitando...</div>
+    if (!playing) {
+      try {
+        await audio.play();
+        btn.innerText = "⏸";
+        currentAudio = audio;
+        avatar.classList.add("speaking");
+      } catch (e) {
+        console.log("Autoplay bloqueado");
+      }
+    } else {
+      audio.pause();
+      btn.innerText = "▶";
+      avatar.classList.remove("speaking");
+      currentAudio = null;
+    }
 
-<div class="input-area">
+    playing = !playing;
+  };
 
-<button id="uploadBtn" class="tool-btn">📎</button>
+  audio.ontimeupdate = () => {
+    if (!audio.duration) return;
 
-<input type="text" id="textInput" placeholder="Fale com a Ária...">
+    const percent = (audio.currentTime / audio.duration) * 100;
+    progress.style.width = percent + "%";
 
-<button id="micBtn" class="mic-btn">🎤</button>
+    const min = Math.floor(audio.currentTime / 60);
+    const sec = Math.floor(audio.currentTime % 60);
+    time.innerText = `${min}:${sec.toString().padStart(2, "0")}`;
+  };
 
-<button id="sendBtn" class="send-btn">Enviar</button>
+  audio.onended = () => {
+    playing = false;
+    btn.innerText = "▶";
+    progress.style.width = "0%";
+    avatar.classList.remove("speaking");
+    currentAudio = null;
+  };
 
-</div>
+  container.appendChild(btn);
+  container.appendChild(bar);
+  container.appendChild(time);
 
-<input type="file" id="fileInput" hidden>
-</div>
-</div>
+  wrapper.appendChild(container);
 
-<!-- ERROS -->
-<div id="errorsPanel" class="errors-panel hidden">
-<h3>Dicionário de erros</h3>
-<div id="errorsList"></div>
-</div>
+  messages.appendChild(wrapper);
+  messages.scrollTop = messages.scrollHeight;
+
+  return audio;
+}
+
+
+let usage={
+messages:0,
+audio:0
+}
+
+const limits={
+free:{messages:20,audio:10},
+pro:{messages:9999,audio:9999}
+}
+
+const messages=document.getElementById("messages")
+const input=document.getElementById("textInput")
+const avatar=document.getElementById("avatar")
+const typing=document.getElementById("typing")
+
+/* =========================
+MODE
+========================= */
+
+function setMode(m){
+
+mode=m
+
+document.querySelectorAll(".side-btn")
+.forEach(b=>b.classList.remove("active"))
+
+event.target.classList.add("active")
+
+document.getElementById("status").innerText=
+mode==="teacher"
+? "Modo professora ativa"
+: "Modo conversa natural"
+
+}
+
+/* =========================
+SEND
+========================= */
+
+document.getElementById("sendBtn").onclick=send
+input.addEventListener("keypress",e=>{
+if(e.key==="Enter") send()
+})
+
+async function send(){
+
+if(usage.messages>=limits[plan].messages){
+alert("Limite FREE atingido")
+return
+}
+
+const text=input.value
+if(!text) return
+
+addMsg(text,"user")
+
+input.value=""
+
+usage.messages++
+updateUsage()
+
+typing.style.display="block"
+
+const res = await fetch("/chat", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    message: text,
+    userId: getOrCreateUserId(),
+    mode,
+    plan
+  })
+});
+
+const data = await res.json();
+
+typing.style.display="none"
+
+addMsg(data.reply,"bot")
+
+await speak(data.reply)
+
+} catch (err) {
+  
+typing.style.display="none"
+  
+addMsg("Erro na conexão 😢","bot")
+
+}
+/* =========================
+MESSAGES
+========================= */
+function addMsg(text, type) {
+  const div = document.createElement("div");
+  div.className = "msg " + type;
+
+  // 1️⃣ Destacar palavras com erro
+  let html = text.replace(/\*\*(.*?)\*\*/g, '<span class="error-word">$1</span>');
+
+  // 2️⃣ Quebras de linha automáticas para separar seções
+  // Considera que o OpenAI usa ": " para títulos (Ex: "Explicação:", "Tradução:")
+  html = html
+    .replace(/([^\n]+?:)/g, '<strong>$1</strong>') // deixa títulos em negrito
+    .replace(/\n/g, '<br>');                        // substitui novas linhas por <br>
+
+  div.innerHTML = html;
+
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+/* =========================
+SPEAK
+========================= */
+
+async function speak(text) {
+
+  usage.audio++;
+  updateUsage();
+
+  const res = await fetch("/speak", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text })
+  });
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+
+  // cria player VISUAL
+  const audio = createAudioBubble(url, "bot");
+
+  // tenta tocar automaticamente
+  try {
+    await audio.play();
+    avatar.classList.add("speaking");
+  } catch (e) {
+    console.log("Autoplay bloqueado");
+  }
+
+  audio.onended = () => {
+    avatar.classList.remove("speaking");
+  };
+}
+
+function getOrCreateUserId() {
+  let id = localStorage.getItem("aria_user_id");
+
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem("aria_user_id", id);
+  }
+
+  return id;
+}
+/* =========================
+MIC
+========================= */
+
+let recorder;
+let chunks = [];
+let recording = false;
+
+document.getElementById("micBtn").onclick = async () => {
+  if (usage.audio >= limits[plan].audio) {
+    alert("Limite áudio FREE");
+    return;
+  }
+
+  if (!recording) {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    recorder = new MediaRecorder(stream);
+    recorder.start();
+
+    recording = true;
+    chunks = [];
+
+    recorder.ondataavailable = e => chunks.push(e.data);
+
+  } else {
+    recorder.stop();
+    recording = false;
+
+    const blob = new Blob(chunks, { type: "audio/webm" });
+
+    const form = new FormData();
+    form.append("audio", blob, "gravacao.webm");
+    form.append("userId", getOrCreateUserId());
+    form.append("mode", mode);
+
+    typing.style.display = "block";
+
+    const res = await fetch("/api/audio-eval", {
+      method: "POST",
+      body: form
+    });
+
+    const data = await res.json();
+
+    typing.style.display = "none";
+
+   // 🔊 ÁUDIO DO USUÁRIO
+createAudioBubble(data.audioUrl, "user");
+
+// 💬 TEXTO DA ÁRIA
+addMsg(data.reply, "bot");
+
+// 🔊 ÁRIA FALANDO (COM PLAYER)
+await speak(data.reply);
+  }
+};
+  
+/* =========================
+UPLOAD
+========================= */
+
+document.getElementById("uploadBtn").onclick=()=>{
+document.getElementById("fileInput").click()
+}
+
+document.getElementById("fileInput").onchange=async(e)=>{
+
+const file=e.target.files[0]
+
+const form=new FormData()
+form.append("file",file)
+
+typing.style.display="block"
+
+const res=await fetch("/upload",{
+method:"POST",
+body:form
+})
+
+const data=await res.json()
+
+typing.style.display="none"
+addMsg(data.reply,"bot")
+
+}
+
+/* =========================
+ERROR PANEL
+========================= */
+
+function toggleErrors(){
+document.getElementById("errorsPanel")
+.classList.toggle("hidden")
+}
+
+/* =========================
+NEW CHAT
+========================= */
+
+function newChat(){
+messages.innerHTML=""
+}
+
+/* =========================
+DEEP MODE
+========================= */
+
+function deepMode(){
+addMsg("Modo investigar ativado","bot")
+}
+
+/* =========================
+USAGE
+========================= */
+
+function updateUsage(){
+
+document.getElementById("usageBox").innerHTML=
+`
+Mensagens: ${usage.messages}/${limits[plan].messages}<br>
+Áudio: ${usage.audio}/${limits[plan].audio}
+`
+
+}
+
+/* =========================
+PRO
+========================= */
+
+async function upgradePro(){
+
+const res=await fetch("/create-checkout-session",{
+method:"POST"
+})
+
+const data=await res.json()
+
+window.location.href=data.url
+
+}
+
+updateUsage()
+
+document.addEventListener("play", function(e) {
+  const audios = document.querySelectorAll("audio");
+  audios.forEach(a => {
+    if (a !== e.target) a.pause();
+  });
+}, true);
+
+</script>
+
+<!-- ============================= -->
+<!-- FIM PARTE 3 -->
+<!-- ============================= -->
+
+</script>
 
 </body>
 </html>
-<script>
-
-let mode = "teacher"
-let plan = "free"
-
-let currentAudio = null
-
-let usage = {
-messages: 0,
-audio: 0
-}
-
-const limits = {
-free: { messages: 20, audio: 10 },
-pro: { messages: 9999, audio: 9999 }
-}
-
-const messages = document.getElementById("messages")
-const input = document.getElementById("textInput")
-const avatar = document.getElementById("avatar")
-const typing = document.getElementById("typing")
-
 /* =========================
 USER ID
 ========================= */
