@@ -861,10 +861,159 @@ document.addEventListener("play", function(e) {
 <!-- FIM PARTE 3 -->
 <!-- ============================= -->
 
-</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ária AI</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+/* (SEU CSS ORIGINAL MANTIDO) */
+
+.audio-wrapper{
+display:flex;
+align-items:center;
+gap:10px;
+margin-top:6px;
+}
+
+.audio-bar{
+flex:1;
+height:6px;
+background:#e5e7eb;
+border-radius:10px;
+overflow:hidden;
+}
+
+.audio-progress{
+height:100%;
+width:0%;
+background:#2563eb;
+}
+
+.time{
+font-size:11px;
+color:#6b7280;
+min-width:40px;
+text-align:right;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- SIDEBAR (SEM ALTERAÇÃO) -->
+<div class="sidebar">
+<div class="logo">
+<img src="/images/aria.png" class="logo-avatar">
+<span>Ária</span>
+</div>
+
+<div class="plan-box">
+<div id="planName">Plano Free</div>
+<div id="usageBox"></div>
+<button onclick="upgradePro()" class="pro-btn">
+💎 Tornar-se PRO
+</button>
+</div>
+
+<div class="side-section">
+<h3>Modo</h3>
+
+<button class="side-btn active" onclick="setMode(event,'teacher')">
+👩‍🏫 Professora
+</button>
+
+<button class="side-btn" onclick="setMode(event,'casual')">
+💬 Casual
+</button>
+</div>
+
+<div class="side-section">
+<h3>Ferramentas</h3>
+
+<button class="side-btn" onclick="deepMode()">
+🔎 Investigar a fundo
+</button>
+
+<button class="side-btn" onclick="toggleErrors()">
+📚 Dicionário de erros
+</button>
+
+<button class="side-btn" onclick="newChat()">
+🆕 Nova conversa
+</button>
+</div>
+</div>
+
+<!-- CHAT -->
+<div class="chat">
+
+<div class="chat-header">
+<img src="/images/aria.png" class="avatar" id="avatar">
+
+<div class="chat-info">
+<div class="name">Ária</div>
+<div class="status" id="status">IA professora poliglota</div>
+</div>
+</div>
+
+<div class="messages" id="messages"></div>
+<div class="typing" id="typing">Ária está digitando...</div>
+
+<div class="input-area">
+
+<button id="uploadBtn" class="tool-btn">📎</button>
+
+<input type="text" id="textInput" placeholder="Fale com a Ária...">
+
+<button id="micBtn" class="mic-btn">🎤</button>
+
+<button id="sendBtn" class="send-btn">Enviar</button>
+
+</div>
+
+<input type="file" id="fileInput" hidden>
+</div>
+</div>
+
+<!-- ERROS -->
+<div id="errorsPanel" class="errors-panel hidden">
+<h3>Dicionário de erros</h3>
+<div id="errorsList"></div>
+</div>
 
 </body>
 </html>
+<script>
+
+let mode = "teacher"
+let plan = "free"
+
+let currentAudio = null
+
+let usage = {
+messages: 0,
+audio: 0
+}
+
+const limits = {
+free: { messages: 20, audio: 10 },
+pro: { messages: 9999, audio: 9999 }
+}
+
+const messages = document.getElementById("messages")
+const input = document.getElementById("textInput")
+const avatar = document.getElementById("avatar")
+const typing = document.getElementById("typing")
 /* =========================
 USER ID
 ========================= */
